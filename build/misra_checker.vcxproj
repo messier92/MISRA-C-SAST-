@@ -1,0 +1,361 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DADA59ED-8ABF-3B94-B842-370D898CEAE0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>misra_checker</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\HanLo\Projects\misra\build\Release\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">misra_checker.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">misra_checker</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\HanLo\Projects\misra\build\Release\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">misra_checker.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">misra_checker</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\HanLo\Projects\misra\build\Release\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">misra_checker.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">misra_checker</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\HanLo\Projects\misra\build\Release\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">misra_checker.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">misra_checker</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\Program Files\llvm-project\build\Debug\lib\clangTooling.lib;C:\Program Files\llvm-project\build\Debug\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\Debug\lib\clangFrontend.lib;C:\Program Files\llvm-project\build\Debug\lib\clangSerialization.lib;C:\Program Files\llvm-project\build\Debug\lib\clangDriver.lib;C:\Program Files\llvm-project\build\Debug\lib\clangParse.lib;C:\Program Files\llvm-project\build\Debug\lib\clangSema.lib;C:\Program Files\llvm-project\build\Debug\lib\clangAnalysis.lib;C:\Program Files\llvm-project\build\Debug\lib\clangEdit.lib;C:\Program Files\llvm-project\build\Debug\lib\clangAST.lib;C:\Program Files\llvm-project\build\Debug\lib\clangLex.lib;C:\Program Files\llvm-project\build\Debug\lib\clangBasic.lib;C:\Program Files\llvm-project\build\Debug\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMOption.lib;version.lib;advapi32.lib;shell32.lib;ole32.lib;C:\Program Files\llvm-project\build\Debug\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\Debug\lib\clangAPINotes.lib;C:\Program Files\llvm-project\build\Debug\lib\clangSupport.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMFrontendHLSL.lib;version.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMWindowsDriver.lib;C:\Program Files\llvm-project\build\Debug\lib\clangAST.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMOption.lib;C:\Program Files\llvm-project\build\Debug\lib\clangFormat.lib;C:\Program Files\llvm-project\build\Debug\lib\clangToolingInclusions.lib;C:\Program Files\llvm-project\build\Debug\lib\clangToolingCore.lib;C:\Program Files\llvm-project\build\Debug\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\Debug\lib\clangLex.lib;C:\Program Files\llvm-project\build\Debug\lib\clangBasic.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMFrontendOpenMP.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMScalarOpts.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMAggressiveInstCombine.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMInstCombine.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMFrontendOffloading.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMTransformUtils.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMAnalysis.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMProfileData.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMSymbolize.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMDebugInfoPDB.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMDebugInfoMSF.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMDebugInfoBTF.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMDebugInfoDWARF.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMObject.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMMCParser.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMMC.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMDebugInfoCodeView.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMIRReader.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMBitReader.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMAsmParser.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMRemarks.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMBitstreamReader.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMTextAPI.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMBinaryFormat.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMTargetParser.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\Debug\lib\LLVMDemangle.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/HanLo/Projects/misra/build/Debug/misra_checker.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/HanLo/Projects/misra/build/Release/Debug/misra_checker.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\Program Files\llvm-project\build\Release\lib\clangTooling.lib;C:\Program Files\llvm-project\build\Release\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\Release\lib\clangFrontend.lib;C:\Program Files\llvm-project\build\Release\lib\clangSerialization.lib;C:\Program Files\llvm-project\build\Release\lib\clangDriver.lib;C:\Program Files\llvm-project\build\Release\lib\clangParse.lib;C:\Program Files\llvm-project\build\Release\lib\clangSema.lib;C:\Program Files\llvm-project\build\Release\lib\clangAnalysis.lib;C:\Program Files\llvm-project\build\Release\lib\clangEdit.lib;C:\Program Files\llvm-project\build\Release\lib\clangAST.lib;C:\Program Files\llvm-project\build\Release\lib\clangLex.lib;C:\Program Files\llvm-project\build\Release\lib\clangBasic.lib;C:\Program Files\llvm-project\build\Release\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMOption.lib;version.lib;advapi32.lib;shell32.lib;ole32.lib;C:\Program Files\llvm-project\build\Release\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\Release\lib\clangAPINotes.lib;C:\Program Files\llvm-project\build\Release\lib\clangSupport.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMFrontendHLSL.lib;version.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMWindowsDriver.lib;C:\Program Files\llvm-project\build\Release\lib\clangAST.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMOption.lib;C:\Program Files\llvm-project\build\Release\lib\clangFormat.lib;C:\Program Files\llvm-project\build\Release\lib\clangToolingInclusions.lib;C:\Program Files\llvm-project\build\Release\lib\clangToolingCore.lib;C:\Program Files\llvm-project\build\Release\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\Release\lib\clangLex.lib;C:\Program Files\llvm-project\build\Release\lib\clangBasic.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMFrontendOpenMP.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMScalarOpts.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMAggressiveInstCombine.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMInstCombine.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMFrontendOffloading.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMTransformUtils.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMAnalysis.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMProfileData.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMSymbolize.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMDebugInfoPDB.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMDebugInfoMSF.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMDebugInfoBTF.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMDebugInfoDWARF.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMObject.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMMCParser.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMMC.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMDebugInfoCodeView.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMIRReader.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMBitReader.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMAsmParser.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMRemarks.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMBitstreamReader.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMTextAPI.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMBinaryFormat.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMTargetParser.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\Release\lib\LLVMDemangle.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/HanLo/Projects/misra/build/Release/misra_checker.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/HanLo/Projects/misra/build/Release/Release/misra_checker.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\Program Files\llvm-project\build\MinSizeRel\lib\clangTooling.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangFrontend.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangSerialization.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangDriver.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangParse.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangSema.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangAnalysis.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangEdit.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangAST.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangLex.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangBasic.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMOption.lib;version.lib;advapi32.lib;shell32.lib;ole32.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangAPINotes.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangSupport.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMFrontendHLSL.lib;version.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMWindowsDriver.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangAST.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMOption.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangFormat.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangToolingInclusions.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangToolingCore.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangLex.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\clangBasic.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMFrontendOpenMP.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMScalarOpts.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMAggressiveInstCombine.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMInstCombine.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMFrontendOffloading.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMTransformUtils.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMAnalysis.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMProfileData.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMSymbolize.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMDebugInfoPDB.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMDebugInfoMSF.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMDebugInfoBTF.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMDebugInfoDWARF.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMObject.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMMCParser.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMMC.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMDebugInfoCodeView.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMIRReader.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMBitReader.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMAsmParser.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMRemarks.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMBitstreamReader.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMTextAPI.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMBinaryFormat.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMTargetParser.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\MinSizeRel\lib\LLVMDemangle.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/HanLo/Projects/misra/build/MinSizeRel/misra_checker.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/HanLo/Projects/misra/build/Release/MinSizeRel/misra_checker.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangTooling.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangFrontend.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangSerialization.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangDriver.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangParse.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangSema.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangAnalysis.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangEdit.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangAST.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangLex.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangBasic.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMOption.lib;version.lib;advapi32.lib;shell32.lib;ole32.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangASTMatchers.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangAPINotes.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangSupport.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMFrontendHLSL.lib;version.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMWindowsDriver.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangAST.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMOption.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangFormat.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangToolingInclusions.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangToolingCore.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangRewrite.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangLex.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\clangBasic.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMFrontendOpenMP.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMScalarOpts.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMAggressiveInstCombine.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMInstCombine.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMFrontendOffloading.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMTransformUtils.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMAnalysis.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMProfileData.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMSymbolize.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMDebugInfoPDB.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMDebugInfoMSF.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMDebugInfoBTF.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMDebugInfoDWARF.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMObject.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMMCParser.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMMC.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMDebugInfoCodeView.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMIRReader.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMBitReader.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMAsmParser.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMCore.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMRemarks.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMBitstreamReader.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMTextAPI.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMBinaryFormat.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMTargetParser.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMSupport.lib;C:\Program Files\llvm-project\build\RelWithDebInfo\lib\LLVMDemangle.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/HanLo/Projects/misra/build/RelWithDebInfo/misra_checker.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/HanLo/Projects/misra/build/Release/RelWithDebInfo/misra_checker.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\HanLo\Projects\misra\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/HanLo/Projects/misra/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/HanLo/Projects/misra -BC:/Users/HanLo/Projects/misra/build --check-stamp-file C:/Users/HanLo/Projects/misra/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeRCLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMBuildTreeOnlyTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMExports.cmake;C:\Program Files\llvm-project\llvm\cmake\modules\LLVM-Config.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeCXXCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeRCCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\HanLo\Projects\misra\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/HanLo/Projects/misra/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/HanLo/Projects/misra -BC:/Users/HanLo/Projects/misra/build --check-stamp-file C:/Users/HanLo/Projects/misra/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeRCLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMBuildTreeOnlyTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMExports.cmake;C:\Program Files\llvm-project\llvm\cmake\modules\LLVM-Config.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeCXXCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeRCCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\HanLo\Projects\misra\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/HanLo/Projects/misra/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/HanLo/Projects/misra -BC:/Users/HanLo/Projects/misra/build --check-stamp-file C:/Users/HanLo/Projects/misra/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeRCLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMBuildTreeOnlyTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMExports.cmake;C:\Program Files\llvm-project\llvm\cmake\modules\LLVM-Config.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeCXXCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeRCCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\HanLo\Projects\misra\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/HanLo/Projects/misra/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/HanLo/Projects/misra -BC:/Users/HanLo/Projects/misra/build --check-stamp-file C:/Users/HanLo/Projects/misra/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Internal\CMakeRCLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\clang\ClangTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMBuildTreeOnlyTargets.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfig.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMConfigVersion.cmake;C:\Program Files\llvm-project\build\lib\cmake\llvm\LLVMExports.cmake;C:\Program Files\llvm-project\llvm\cmake\modules\LLVM-Config.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeCXXCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeRCCompiler.cmake;C:\Users\HanLo\Projects\misra\build\CMakeFiles\3.31.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\HanLo\Projects\misra\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\main.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\Rule.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\ViolationStore.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\ProjectFileFilter.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\GlobalSymbolDatabase.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\MisraChecker.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule0\Rule011.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule0\Rule013.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule0\Rule016.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule0\Rule017.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule0\Rule018.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule0\Rule019.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule524.cpp" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\HanLo\Projects\misra\build\ZERO_CHECK.vcxproj">
+      <Project>{FE4795CE-4780-32A3-8EF6-3EACB8ADF7CD}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

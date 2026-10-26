@@ -1,0 +1,34 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeCXXInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeGenericSystem.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeInitializeConfigs.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeRCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeCXXLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeCommonLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeRCLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Linker/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Linker/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-Initialize.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/WindowsPaths.cmake
+C:/Program Files/llvm-project/build/lib/cmake/clang/ClangConfig.cmake
+C:/Program Files/llvm-project/build/lib/cmake/clang/ClangConfigVersion.cmake
+C:/Program Files/llvm-project/build/lib/cmake/clang/ClangTargets.cmake
+C:/Program Files/llvm-project/build/lib/cmake/llvm/LLVMBuildTreeOnlyTargets.cmake
+C:/Program Files/llvm-project/build/lib/cmake/llvm/LLVMConfig.cmake
+C:/Program Files/llvm-project/build/lib/cmake/llvm/LLVMConfigVersion.cmake
+C:/Program Files/llvm-project/build/lib/cmake/llvm/LLVMExports.cmake
+C:/Program Files/llvm-project/llvm/cmake/modules/LLVM-Config.cmake
+C:/Users/HanLo/Projects/misra/CMakeLists.txt
+C:/Users/HanLo/Projects/misra/build/CMakeFiles/3.31.0-rc2/CMakeCXXCompiler.cmake
+C:/Users/HanLo/Projects/misra/build/CMakeFiles/3.31.0-rc2/CMakeRCCompiler.cmake
+C:/Users/HanLo/Projects/misra/build/CMakeFiles/3.31.0-rc2/CMakeSystem.cmake

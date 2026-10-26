@@ -1,0 +1,50 @@
+================================================================
+  MISRA C++:2008 Static Analysis Report
+  Tag: 2026-10-26 22:20:10
+================================================================
+
+Scanned files (6):
+  tests\Rule0\Rule011.cpp
+  tests\Rule0\Rule013.cpp
+  tests\Rule0\Rule016.cpp
+  tests\Rule0\Rule017.cpp
+  tests\Rule0\Rule018.cpp
+  tests\Rule0\Rule019.cpp
+
+Violations (11):
+------------------------------------------------------------------------
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule011.cpp:8:6  [MISRA-0-1-1]  Unreachable code detected.
+    | temp = arg; // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule011.cpp:19:2  [MISRA-0-1-1]  Unreachable code detected.
+    | arg++; // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule013.cpp:15:5  [MISRA-0-1-3]  Member variable 'string3' is declared but never read or written.
+    | std::string string3; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule013.cpp:44:5  [MISRA-0-1-3]  Member variable 'pad' is declared but never read or written.
+    | unsigned char pad : 1; // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule016.cpp:34:5  [MISRA-0-1-6]  Variable 'tinyUnit' is initialized with a value that is never subsequently used.
+    | largeInteger tinyUnit{0,1,0}; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule017.cpp:30:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
+    | assignMemory(&val);   //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule017.cpp:34:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
+    | numVec.erase(std::unique(numVec.begin(), numVec.end()), numVec.end());// Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:24:1  [MISRA-0-1-8]  Function 'init' has void return type but no external side effects.
+    | void init ( int refToInt )          // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:29:1  [MISRA-0-1-8]  Function 'transform' has void return type but no external side effects.
+    | void transform(double theta) //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:33:1  [MISRA-0-1-8]  Function 'foo' has void return type but no external side effects.
+    | void foo(int val){ //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule019.cpp:12:9  [MISRA-0-1-9]  Dead code: value assigned to 'res' is never subsequently used.
+    | res = 0; //Noncompliant
+------------------------------------------------------------------------
+
+Summary by rule:
+  MISRA-0-1-1         2 violations
+  MISRA-0-1-3         2 violations
+  MISRA-0-1-6         1 violation
+  MISRA-0-1-7         2 violations
+  MISRA-0-1-8         3 violations
+  MISRA-0-1-9         1 violation
+  MISRA-5-2-4         0 violations
+
+  Total: 11 violations
+================================================================

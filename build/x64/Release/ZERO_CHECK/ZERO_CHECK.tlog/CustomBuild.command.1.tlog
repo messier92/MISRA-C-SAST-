@@ -1,0 +1,10 @@
+^C:\USERS\HANLO\PROJECTS\MISRA\BUILD\CMAKEFILES\3C5B59317A47D044F21203224B09EAB8\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/HanLo/Projects/misra -BC:/Users/HanLo/Projects/misra/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/HanLo/Projects/misra/build/misra_checker.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

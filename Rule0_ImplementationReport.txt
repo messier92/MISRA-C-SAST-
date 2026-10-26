@@ -1,0 +1,100 @@
+## Implementation Report: `Rule0` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-0-1-1 — Unreachable Code ([`Rule011`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule011.cpp)):**
+  - Traverses function definitions top-down to detect statements following unconditional control-flow terminators (`return`, `break`, `continue`, `throw`, `goto`, `if`/`else` where both branches terminate, and infinite loops without `break`).
+  - Detects executable statements in a `switch` body before the first `case`, `default`, or label statement.
+  - Resets reachability when encountering labels (`CaseStmt`, `DefaultStmt`, `LabelStmt`) and unwraps labeled sub-statements.
+  - Evaluates constant boolean conditions (`EvaluateAsBooleanCondition`) in `if`, `while`, and `for` statements to flag unreachable branches and loop bodies.
+  - Updated [`Rule::isReachable`](file:///c:/Users/HanLo/Projects/misra/src/Rule.cpp#L101-L171) so other rules accurately skip unreachable code.
+
+- **MISRA-0-1-3 — Unused Variables ([`Rule013`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule013.cpp)):**
+  - Inspects `VarDecl` (local and global variables, excluding `ParmVarDecl`, `volatile`, and `extern` non-definitions) and `FieldDecl` (struct/class member variables, excluding unnamed bit-field padding such as `unsigned char : 1`).
+  - Tracks variable references and member accesses (`MemberExpr`) across active/reachable functions and methods in the translation unit (ignoring uncalled inline getters when the class is otherwise exercised in the TU, and distinguishing constructor member-initializer lists from live field reads/writes).
+  - Leaves local/file-static variables with explicit value initializations to `Rule016` so unused initializations are not double-reported.
+
+- **MISRA-0-1-6 — Unused Assignments ([`Rule016`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.cpp)):**
+  - Reports non-volatile local variables and file-scope `static` (or non-`extern` `const`) variables initialized with a value that is never subsequently read (respecting the specification's exception when an initialized variable is later overwritten by an assignment).
+  - Builds a Clang `CFG` per function and performs forward reachability over `CFGBlock`s (including loop back-edges, so assignments used in subsequent loop iterations are not flagged) to detect value assignments overwritten by another assignment before any subsequent read.
+
+- **MISRA-0-1-7 — Ignored Return Values ([`Rule017`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule017.cpp)):**
+  - Matches non-operator `CallExpr` nodes returning non-`void` types.
+  - Walks up `ASTContext::getParents` through transparent wrappers (`ExprWithCleanups`, `MaterializeTemporaryExpr`, `CXXBindTemporaryExpr`, `ImplicitCastExpr`, `ParenExpr`) to detect calls whose results are discarded in expression statements or the LHS of a comma operator.
+  - Allows explicit casts to `void` (`(void)fn()`, `static_cast<void>(fn())`), overloaded operators (`CXXOperatorCallExpr`), and the standard C string/memory functions (`memcpy`, `memset`, `memmove`, `strcpy`, `strncpy`, `strcat`, `strncat`).
+
+- **MISRA-0-1-8 — Side-Effect-Free Functions ([`Rule018`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule018.cpp)):**
+  - Checks `void`-returning function definitions (excluding constructors, destructors, `main`, placement `new`/`delete`, lambdas, and empty `virtual` methods).
+  - Recursively inspects the function body and any in-TU callees for external side effects: modifying or dereferencing pointer/reference parameters or non-local variables, accessing `this` or non-local/parameter struct/class members, accessing `volatile` objects, throwing exceptions (`CXXThrowExpr`), dynamic allocation (`new`/`delete`), inline assembly (`AsmStmt`), or calling impure functions other than the function itself (recognizing standard pure `<cmath>`/`<cstring>` functions).
+
+- **MISRA-0-1-9 — Dead Operations ([`Rule019`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule019.cpp)):**
+  - Uses Clang `CFG` reachability to detect reachable standalone assignment statements (`res = 0;`) to non-aliased, non-volatile local variables where the RHS has no side effects and the assigned value reaches function exit without ever being read (and without duplicating overwritten-assignment diagnostics from `Rule016`).
+  - Also detects reachable standalone side-effect-free expression statements whose computed values are discarded.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule011.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule011.h) / [Rule011.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule011.cpp) | Implemented complete unreachable-code detection for Rule 0-1-1 (`switch` pre-case statements, labels, nested blocks, constant conditions). |
+| [Rule013.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule013.h) / [Rule013.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule013.cpp) | Added Rule 0-1-3 checker for unused local, global, and struct/class member variables. |
+| [Rule016.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.h) / [Rule016.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.cpp) | Added Rule 0-1-6 checker for unused initializations and overwritten value assignments using Clang `CFG`. |
+| [Rule017.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule017.h) / [Rule017.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule017.cpp) | Added Rule 0-1-7 checker for ignored return values of non-void, non-operator function calls. |
+| [Rule018.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule018.h) / [Rule018.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule018.cpp) | Added Rule 0-1-8 checker for `void` functions lacking external side effects. |
+| [Rule019.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule019.h) / [Rule019.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule019.cpp) | Added Rule 0-1-9 checker for dead assignments and side-effect-free expression statements. |
+| [Rule.cpp](file:///c:/Users/HanLo/Projects/misra/src/Rule.cpp) | Enhanced `Rule::isReachable` to account for `switch` pre-case statements, labels, and constant-condition branches. |
+| [Rule524.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule524.h) | Updated `#include "Rule.h"` path after directory reorganization under `src/rules/Rule5/`. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Registered `Rule011`, `Rule013`, `Rule016`, `Rule017`, `Rule018`, `Rule019`, and `Rule524`; added default Clang argument adjusters for MSVC STL compatibility and freestanding/access-control resilience on test fixtures. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `src/rules/Rule0/Rule01*.cpp` and `src/rules/Rule5/Rule524.cpp` sources and include directories. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run individual Rule0 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule0\Rule011.cpp
+.\build\Release\Release\misra_checker.exe tests\Rule0\Rule013.cpp
+.\build\Release\Release\misra_checker.exe tests\Rule0\Rule016.cpp
+.\build\Release\Release\misra_checker.exe tests\Rule0\Rule017.cpp
+.\build\Release\Release\misra_checker.exe tests\Rule0\Rule018.cpp
+.\build\Release\Release\misra_checker.exe tests\Rule0\Rule019.cpp
+
+# Run complete Rule0 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+
+# Run existing Rule5 test fixture (regression check)
+.\build\Release\Release\misra_checker.exe tests\Rule5\Rule524.cpp -- -std=c++17
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (7 / 7 test suites):**
+  - [Rule011.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule0/Rule011.cpp): **PASS** — 2 `MISRA-0-1-1` violations at lines 8 and 19 (`// Noncompliant`), 0 false positives.
+  - [Rule013.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule0/Rule013.cpp): **PASS** — 2 `MISRA-0-1-3` violations at lines 15 (`string3`) and 44 (`pad`), 0 false positives on compliant variables or unnamed bit-fields.
+  - [Rule016.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule0/Rule016.cpp): **PASS** — 1 `MISRA-0-1-6` violation at line 34 (`tinyUnit`), 0 false positives.
+  - [Rule017.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule0/Rule017.cpp): **PASS** — 2 `MISRA-0-1-7` violations at lines 30 (`assignMemory(&val)`) and 34 (`numVec.erase(...)`), 0 false positives on `(void)` cast or assigned return value.
+  - [Rule018.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule0/Rule018.cpp): **PASS** — 3 `MISRA-0-1-8` violations at lines 24 (`init`), 29 (`transform`), and 33 (`foo`), 0 false positives.
+  - [Rule019.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule0/Rule019.cpp): **PASS** — 1 `MISRA-0-1-9` violation at line 12 (`res = 0;`), 0 false positives.
+  - [Rule524.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule5/Rule524.cpp): **PASS** — All 4 `MISRA-5-2-4` C-style cast violations detected at lines 52, 54, 55, and 56.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Cross-TU purity and usage analysis:** `Rule013`, `Rule016`, `Rule018`, and `Rule019` operate per translation unit. In `Rule018`, external functions without a body in the current translation unit (and not in the known-pure standard library list or annotated with `pure`/`const` attributes) are conservatively assumed to have side effects to avoid false positives.
+- **Pointer aliasing in `Rule016` and `Rule019`:** Local variables whose addresses are taken (`&var`) or bound to references are conservatively treated as aliased so indirect reads/writes through pointers do not trigger false dead-assignment diagnostics.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All six `Rule0` rules are implemented, integrated, built, and validated against their specifications and tests.
