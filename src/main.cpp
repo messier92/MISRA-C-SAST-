@@ -119,15 +119,19 @@ int main(int argc, const char** argv) {
     }
 
     std::vector<std::string> sources = optParser->getSourcePathList();
+    std::string inferredRoot;
 
     // If a single argument is a directory, expand it.
     if (sources.size() == 1 && fs::is_directory(sources[0])) {
         std::string dir = sources[0];
+        inferredRoot = fs::absolute(dir).lexically_normal().string();
         sources = discoverSources(dir);
         if (sources.empty()) {
             std::cerr << "No C/C++ sources found under " << dir << "\n";
             return 1;
         }
+    } else if (!sources.empty()) {
+        inferredRoot = fs::absolute(sources[0]).lexically_normal().parent_path().string();
     }
 
     std::cout << "================================================================\n";
@@ -136,9 +140,9 @@ int main(int argc, const char** argv) {
     std::cout << "================================================================\n\n";
 
     // ── Create shared state ────────────────────────────────────
-    std::string root = ProjectRoot.empty()
-        ? fs::current_path().string()
-        : ProjectRoot.getValue();
+    std::string root = !ProjectRoot.empty()
+        ? ProjectRoot.getValue()
+        : (!inferredRoot.empty() ? inferredRoot : fs::current_path().string());
 
     misra::ViolationStore       store(root);
     misra::GlobalSymbolDatabase db;
