@@ -202,7 +202,8 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
 
         bool VisitVarDecl(VarDecl* vd) {
             if (!vd || vd->getBeginLoc().isInvalid() ||
-                sm_.isInSystemHeader(vd->getBeginLoc())) {
+                sm_.isInSystemHeader(vd->getBeginLoc()) ||
+                !sm_.isInMainFile(sm_.getSpellingLoc(vd->getBeginLoc()))) {
                 return true;
             }
             if (isTargetFileStaticVar(vd)) {

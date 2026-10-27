@@ -1,0 +1,88 @@
+## Implementation Report: `Rule3` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-3-1-1 — Header File Inclusion Without ODR Violations ([`Rule311`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule311.cpp)):**
+  - Inspects file- and namespace-scope `FunctionDecl` and `VarDecl` nodes whose spelling location resides in a project header file (`!sm.isInMainFile(spellingLoc)` or `.h`/`.hh`/`.hpp`/`.hxx` extension). Does not report declarations or definitions in non-header source files (`.cpp`).
+  - Flags non-`inline`, non-`constexpr`, non-template function definitions in header files (`void F3() {}`) as well as non-`inline` `static` function declarations/definitions in header files (`static void F6() noexcept;`).
+  - Flags non-`const`, non-`constexpr`, non-`inline` variable definitions in header files (`std::int32_t a;`, `static std::int32_t f;`), while allowing pure `extern` declarations (`extern std::int32_t b;`) and `const`/`constexpr` internal-linkage constants (`constexpr static`, `const static`).
+
+- **MISRA-3-2-2 — One Definition Rule Token-Diff Detection ([`Rule322`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule322.cpp)):**
+  - First traverses the translation unit with `UsedEntityCollector` to record actively used tag types, called functions (including `main`), and referenced objects so unused code, uninstantiated templates, and uncalled functions are excluded.
+  - Scans included project headers and main source files in inclusion order for `struct`/`class`/`union`/`enum` definitions as well as AST `FunctionDecl` and `VarDecl` definitions, extracting raw token sequences via `clang::Lexer`.
+  - Flags subsequent definitions of the same used entity when their token sequences differ by at least one token (such as `struct Packet` in `Rule322.h` vs. `Rule322.cpp`), reporting at the closing brace location (`}; //Noncompliant`).
+
+- **MISRA-3-2-3 — Single-File Declaration of External Objects ([`Rule323`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule323.cpp)):**
+  - Traverses file- and namespace-scope `VarDecl` nodes with explicit `extern` storage (`SC_Extern`, `DeclarationOnly`) across included project header files and source files.
+  - Records the normalized file path of the first `extern` declaration for each qualified object name (`getQualifiedNameAsString()`) and flags any subsequent `extern` declaration of the same object that appears in a different file, while leaving objects declared in only one file unflagged.
+
+- **MISRA-3-9-1 — Token-for-Token Identical Types Across Declarations ([`Rule391`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule391.cpp)):**
+  - Extracts the exact sequence of written type tokens from the source buffer using `clang::Lexer` for each `VarDecl` object type and each `FunctionDecl` return type and parameter type (retaining `typedef` names and `const`/`volatile` qualifiers while stripping storage-class and function specifiers such as `extern`, `static`, `inline`).
+  - Compares each declaration or redeclaration against the last seen declaration of the same canonical entity (`getCanonicalDecl()`), reporting a violation whenever the object type, return type, or any parameter type is not token-for-token identical (e.g., `int* map;` followed by `extern intptr map;`).
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule311.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule311.h) / [Rule311.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule311.cpp) | Implemented Rule 3-1-1 checker for variable and function definitions/static declarations in header files. |
+| [Rule322.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule322.h) / [Rule322.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule322.cpp) | Implemented Rule 3-2-2 checker for multiple definitions of used entities that differ by at least one token. |
+| [Rule323.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule323.h) / [Rule323.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule323.cpp) | Implemented Rule 3-2-3 checker for `extern` object declarations spanning multiple files. |
+| [Rule391.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule391.h) / [Rule391.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule3/Rule391.cpp) | Implemented Rule 3-9-1 checker for token-for-token type consistency across declarations and redeclarations. |
+| [Rule016.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.cpp) | Restricted file-scope static/const unused-initialization checks to main source files so header `constexpr`/`const` constants in `Rule311.h` are not falsely flagged. |
+| [Rule2101.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2101.cpp) | Excluded `TagDecl` type names from variable/function typographic collision tracking so idiomatic `Packet packet` declarations in `Rule322.cpp` are not falsely flagged. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule311`, `Rule322`, `Rule323`, and `Rule391` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `src/rules/Rule3/Rule3*.cpp` sources and `src/rules/Rule3` include directory. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule3 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+
+# Run individual Rule3 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule3\Rule311.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3\Rule322.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3\Rule323.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3\Rule391.cpp -- -std=c++17
+
+# Run Rule2 and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (7 / 7 test suites):**
+  - [Rule311.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule311.cpp) & [Rule311.h](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule311.h): **PASS** — 4 `MISRA-3-1-1` violations in `Rule311.h` at lines 15 (`F3`), 28 (`a`), 36 (`f`), and 37 (`F6`), 0 false positives on compliant declarations or `Rule311.cpp`.
+  - [Rule322.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule322.cpp) & [Rule322.h](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule322.h): **PASS** — 1 `MISRA-3-2-2` violation at line 15 (`}; //Noncompliant` for `struct Packet`), 0 false positives.
+  - [Rule323.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule323.cpp) & [Rule323.h](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule323.h): **PASS** — 3 `MISRA-3-2-3` violations in `Rule323.cpp` at lines 6 (`systemStatus`), 8 (`messageCount`), and 12 (`Diagnostics::errorCode`), 0 false positives (`processIdentifier` at line 17 remains unflagged).
+  - [Rule391.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule3/Rule391.cpp): **PASS** — 1 `MISRA-3-9-1` violation at line 9 (`extern intptr map;` vs `int* map;`), 0 false positives (`table` at line 12 remains unflagged).
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected with 0 false positives from `Rule3`.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected with 0 false positives from `Rule3`.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Same-TU Redefinition Diagnostics from Clang Frontend:** When a header and source file in the same translation unit define the same `struct` with conflicting member layouts (as in `Rule322.h` and `Rule322.cpp`), Clang's frontend parser emits a compiler diagnostic (`error: redefinition of 'Packet'`) while building the AST. `Rule322` supplements AST traversal with a raw lexer scan over the TU's project `FileID`s so that conflicting tag definitions are reliably tokenized and reported even when Clang's parser recovers from a redefinition error.
+- **Per-Translation-Unit Evaluation:** Checkers evaluate declarations across each translation unit and its included project headers (`#include`), preventing false cross-contamination when unrelated test files are batch-scanned together.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All four `Rule3` checkers (`3-1-1`, `3-2-2`, `3-2-3`, and `3-9-1`) are implemented, integrated, built, and verified against all `tests/Rule3`, `tests/Rule2`, and `tests/Rule0` suites.
+

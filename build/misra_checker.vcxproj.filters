@@ -52,6 +52,18 @@
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule2\Rule2106.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule311.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule322.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule323.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule391.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule524.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

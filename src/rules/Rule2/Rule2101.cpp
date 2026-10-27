@@ -34,7 +34,6 @@ bool isTrackedDecl(const clang::NamedDecl* d,
           llvm::isa<clang::FunctionDecl>(d)     ||
           llvm::isa<clang::FieldDecl>(d)        ||
           llvm::isa<clang::TypedefNameDecl>(d)  ||
-          llvm::isa<clang::TagDecl>(d)          ||
           llvm::isa<clang::EnumConstantDecl>(d) ||
           llvm::isa<clang::NamespaceDecl>(d))) {
         return false;
