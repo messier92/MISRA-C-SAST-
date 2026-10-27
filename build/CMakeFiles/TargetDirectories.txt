@@ -4,5 +4,7 @@ C:/Users/HanLo/Projects/misra/build/CMakeFiles/acc_gen.dir
 C:/Users/HanLo/Projects/misra/build/CMakeFiles/RISCVTargetParserTableGen.dir
 C:/Users/HanLo/Projects/misra/build/CMakeFiles/clang-tablegen-targets.dir
 C:/Users/HanLo/Projects/misra/build/CMakeFiles/misra_checker.dir
+C:/Users/HanLo/Projects/misra/build/CMakeFiles/violation_store_test.dir
+C:/Users/HanLo/Projects/misra/build/CMakeFiles/RUN_TESTS.dir
 C:/Users/HanLo/Projects/misra/build/CMakeFiles/ALL_BUILD.dir
 C:/Users/HanLo/Projects/misra/build/CMakeFiles/ZERO_CHECK.dir

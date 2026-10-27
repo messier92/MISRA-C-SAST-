@@ -178,6 +178,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{DADA59ED-8ABF-3B94-B842-370D898CEAE0}</Project>
       <Name>misra_checker</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\Users\HanLo\Projects\misra\build\violation_store_test.vcxproj">
+      <Project>{CEB8C160-325A-340F-A6B4-24F1B0862377}</Project>
+      <Name>violation_store_test</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

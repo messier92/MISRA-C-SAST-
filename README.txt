@@ -89,6 +89,20 @@ Exception handler rules, destructors and exceptions
 Rule 16
 16-0-1, 16-0-6, 16-2-1
 Preprocessor usage
+
+Order of reporting:
+1. Rule 15
+2. Rule 5
+3. Rule 3
+4. Rule 16
+5. Rule 7
+6. Rule 9
+7. Rule 2
+8. Rule 6
+9. Rule 0
+Rule 0-1-x supercedes rule 6-6-5
+
+
 7. Tests
 tests/
 • run_tests.ps1: PowerShell driver that runs the checker over the test inputs.

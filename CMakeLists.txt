@@ -111,3 +111,22 @@ set_target_properties(misra_checker PROPERTIES
 )
 
 message(STATUS "misra_checker will be built to: ${CMAKE_BINARY_DIR}/Release/misra_checker.exe")
+
+# ── Unit Tests ──────────────────────────────────────────────────
+enable_testing()
+
+add_executable(violation_store_test
+    tests/ViolationStorePrecedenceTest.cpp
+    src/ViolationStore.cpp
+    src/ProjectFileFilter.cpp
+)
+
+target_include_directories(violation_store_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+set_target_properties(violation_store_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Release"
+)
+
+add_test(NAME ViolationStorePrecedenceTest COMMAND violation_store_test)

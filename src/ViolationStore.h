@@ -46,9 +46,20 @@ public:
     /// Set an optional tag for the report (e.g. timestamp, commit hash).
     void setReportTag(const std::string& tag);
 
-    // ── Output ─────────────────────────────────────────────────
+    // ── Precedence & Output ────────────────────────────────────
 
-    /// Sort violations, print to console, and write to `outputPath`.
+    /// Resolve reporting conflicts when multiple violations flag the same
+    /// source line, enforcing MISRA rule group precedence and the
+    /// Rule 0-1-x over Rule 6-6-5 exception.
+    void applyPrecedence();
+
+    /// Returns the precedence rank (1 = highest, 9 = lowest) for a rule ID.
+    static int getRulePrecedenceRank(const std::string& ruleId);
+
+    /// Returns true if `lhs` takes reporting precedence over `rhs` on the same line.
+    static bool hasHigherPrecedence(const Violation& lhs, const Violation& rhs);
+
+    /// Apply precedence, sort violations, print to console, and write to `outputPath`.
     /// Returns the total number of violations.
     size_t finalize(const std::string& outputPath = "misra_output.txt");
 
