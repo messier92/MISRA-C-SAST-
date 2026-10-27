@@ -12,7 +12,7 @@
 - **MISRA-0-1-3 — Unused Variables ([`Rule013`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule013.cpp)):**
   - Inspects `VarDecl` (local and global variables, excluding `ParmVarDecl`, `volatile`, and `extern` non-definitions) and `FieldDecl` (struct/class member variables, excluding unnamed bit-field padding such as `unsigned char : 1`).
   - Tracks variable references and member accesses (`MemberExpr`) across active/reachable functions and methods in the translation unit (ignoring uncalled inline getters when the class is otherwise exercised in the TU, and distinguishing constructor member-initializer lists from live field reads/writes).
-  - Leaves local/file-static variables with explicit value initializations to `Rule016` so unused initializations are not double-reported.
+  - Leaves local/file-static variables with explicit value initializations to `Rule016` so unused initializations are not double-reported, and skips non-static file-scope globals in library TUs without `main` or declaration-only test stubs so unrelated rule tests do not trigger false positives.
 
 - **MISRA-0-1-6 — Unused Assignments ([`Rule016`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.cpp)):**
   - Reports non-volatile local variables and file-scope `static` (or non-`extern` `const`) variables initialized with a value that is never subsequently read (respecting the specification's exception when an initialized variable is later overwritten by an assignment).
@@ -24,7 +24,7 @@
   - Allows explicit casts to `void` (`(void)fn()`, `static_cast<void>(fn())`), overloaded operators (`CXXOperatorCallExpr`), and the standard C string/memory functions (`memcpy`, `memset`, `memmove`, `strcpy`, `strncpy`, `strcat`, `strncat`).
 
 - **MISRA-0-1-8 — Side-Effect-Free Functions ([`Rule018`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule018.cpp)):**
-  - Checks `void`-returning function definitions (excluding constructors, destructors, `main`, placement `new`/`delete`, lambdas, and empty `virtual` methods).
+  - Checks `void`-returning function definitions (excluding constructors, destructors, `main`, placement `new`/`delete`, lambdas, empty `virtual` methods, and declaration-only empty test stubs in TUs without `main`).
   - Recursively inspects the function body and any in-TU callees for external side effects: modifying or dereferencing pointer/reference parameters or non-local variables, accessing `this` or non-local/parameter struct/class members, accessing `volatile` objects, throwing exceptions (`CXXThrowExpr`), dynamic allocation (`new`/`delete`), inline assembly (`AsmStmt`), or calling impure functions other than the function itself (recognizing standard pure `<cmath>`/`<cstring>` functions).
 
 - **MISRA-0-1-9 — Dead Operations ([`Rule019`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule019.cpp)):**

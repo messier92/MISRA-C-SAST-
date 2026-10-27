@@ -23,6 +23,11 @@
 #include "rules/Rule0/Rule017.h"
 #include "rules/Rule0/Rule018.h"
 #include "rules/Rule0/Rule019.h"
+#include "rules/Rule2/Rule2101.h"
+#include "rules/Rule2/Rule2102.h"
+#include "rules/Rule2/Rule2103.h"
+#include "rules/Rule2/Rule2104.h"
+#include "rules/Rule2/Rule2106.h"
 #include "rules/Rule5/Rule524.h"
 // Add more: #include "rules/RuleXYZ.h"
 
@@ -101,6 +106,11 @@ static void createRules(std::vector<std::unique_ptr<misra::Rule>>& rules) {
     rules.push_back(std::make_unique<misra::Rule017>());
     rules.push_back(std::make_unique<misra::Rule018>());
     rules.push_back(std::make_unique<misra::Rule019>());
+    rules.push_back(std::make_unique<misra::Rule2101>());
+    rules.push_back(std::make_unique<misra::Rule2102>());
+    rules.push_back(std::make_unique<misra::Rule2103>());
+    rules.push_back(std::make_unique<misra::Rule2104>());
+    rules.push_back(std::make_unique<misra::Rule2106>());
     rules.push_back(std::make_unique<misra::Rule524>());
     // ── Add more rules here ──
     // rules.push_back(std::make_unique<misra::Rule504>());

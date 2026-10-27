@@ -8,6 +8,9 @@
       <FullPath>C:\Users\HanLo\Projects\misra\build\Release\Release\misra_checker.exe</FullPath>
     </ProjectOutput>
     <ProjectOutput>
+      <FullPath>C:\Users\HanLo\Projects\misra\build\Release\Release\violation_store_test.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
       <FullPath>C:\Users\HanLo\Projects\misra\build\x64\Release\ALL_BUILD</FullPath>
     </ProjectOutput>
   </ProjectOutputs>

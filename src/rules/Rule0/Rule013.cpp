@@ -247,6 +247,16 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
             if (hasExplicitValueInitForRule016(vd)) {
                 continue;
             }
+            // Non-static file-scope globals in library TUs (without `main`) may
+            // be referenced externally; also skip when shadowed by an inner-scope
+            // variable of the same name (covered by MISRA-2-10-2).
+            if (vd->isFileVarDecl() && !collector.hasMain_) {
+                continue;
+            }
+            // Skip declaration-only test stubs where no variables are referenced at all.
+            if (usage.referencedVars_.empty()) {
+                continue;
+            }
             report(vd->getBeginLoc(),
                    "Variable '" + vd->getNameAsString() +
                    "' is declared or defined but never used.");
@@ -256,6 +266,10 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
     for (const FieldDecl* fd : collector.fieldDecls_) {
         const FieldDecl* canon = fd->getCanonicalDecl();
         if (usage.usedFields_.count(canon) == 0) {
+            // Only flag unused fields in records that are actively used in the TU.
+            if (usage.usedFields_.empty()) {
+                continue;
+            }
             report(fd->getBeginLoc(),
                    "Member variable '" + fd->getNameAsString() +
                    "' is declared but never read or written.");

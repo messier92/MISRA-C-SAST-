@@ -1,0 +1,41 @@
+Start testing: Oct 27 23:17 Malay Peninsula Standard Time
+----------------------------------------------------------
+1/1 Testing: ViolationStorePrecedenceTest
+1/1 Test: ViolationStorePrecedenceTest
+Command: "C:/Users/HanLo/Projects/misra/build/Release/Release/violation_store_test.exe"
+Directory: C:/Users/HanLo/Projects/misra/build
+"ViolationStorePrecedenceTest" start time: Oct 27 23:17 Malay Peninsula Standard Time
+Output:
+----------------------------------------------------------
+================================================================
+  MISRA C++:2008 Static Analysis Report
+  Tag: 2026-10-27 00:00:00
+================================================================
+
+Scanned files (1):
+  sample.cpp
+
+Violations (1):
+------------------------------------------------------------------------
+sample.cpp:52:15  [MISRA-5-2-4]  C-style cast
+    | Base* obj2 = (Base*)(&obj);
+------------------------------------------------------------------------
+
+Summary by rule:
+  MISRA-0-1-6         0 violations
+  MISRA-5-2-4         1 violation
+
+  Total: 1 violation
+================================================================
+
+Report written to: temp_precedence_test_report.txt
+All ViolationStore precedence tests passed successfully.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"ViolationStorePrecedenceTest" end time: Oct 27 23:17 Malay Peninsula Standard Time
+"ViolationStorePrecedenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 27 23:17 Malay Peninsula Standard Time

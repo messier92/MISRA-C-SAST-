@@ -1,16 +1,24 @@
+#include "Rule323.h"
+
 // MISRA C++:2008 Rule 3-2-3
-// A type, object or function that is used in multiple translation units shall be declared in one and only one file
+// These external objects are already declared in Rule323.h.
 
-// Report a violation of this rule if you declare an extern object in multiple files.
+extern int systemStatus; //Noncompliant
 
-#include "header.hpp"
-extern int flag;//Noncompliant
-class A{/**/};
-void foo(void){
-	//..
-} 
+extern unsigned int messageCount; //Noncompliant
 
-extern int flag;
+namespace Diagnostics
+{
+    extern int errorCode; //Noncompliant
+}
 
-// The external identifier flag is declared in both header.hpp and file1.cpp. Report a violation of this rule.
+// A separate object declared only in this source file.
+// This should not be flagged by this test.
+extern long processIdentifier;
 
+void updateDiagnostics()
+{
+    systemStatus = 1;
+    ++messageCount;
+    Diagnostics::errorCode = 42;
+}

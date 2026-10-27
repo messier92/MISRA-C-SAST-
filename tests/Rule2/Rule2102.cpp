@@ -21,7 +21,7 @@ void runSomeCheck(int);
 
 void checkMatrix(int dim1, int dim2) {
   for(int index = 0; index < dim1; index++) {
-      for(int index = 0; index < dim2; index++) { // Noncompliant
+      for(int index = 0; index < dim2; index++) { //Noncompliant
           runSomeCheck(index);
       }
   }

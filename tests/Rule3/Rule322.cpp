@@ -1,26 +1,26 @@
+#include "Rule322.h"
+
 // MISRA C++:2008 Rule 3-2-2
-// The One Definition Rule shall not be violated
+// The One Definition Rule shall not be violated.
+//
+// The checker flags multiple definitions of the same function or object
+// when their definitions differ by at least one token.
+// Unused code, including uninstantiated templates and uncalled functions,
+// is not reported by this checker.
 
-// The checker flags situations where the same function or object has multiple definitions and the definitions differ by some token. The checker is not raised on unused code such as
-// Noninstantiated templates
-// Uncalled static or extern functions
-// Uncalled and undefined local functions
-// Unused types and variables
-
-typedef struct S //Noncompliant
+struct Packet
 {
-   int x;
-   int y;
-}S; 
-void foo(S& s){
-//...
-} 
+    int length;
+    int id;
+}; //Noncompliant
 
-typedef struct S 
+int calculateChecksum(const Packet& packet)
 {
-   int y;
-   int x;
-}S ; 
-void bar(S& s){
-//...
+    return packet.id + packet.length;
+}
+
+int main()
+{
+    Packet packet{};
+    return calculateChecksum(packet);
 }

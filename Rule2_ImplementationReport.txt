@@ -1,0 +1,94 @@
+## Implementation Report: `Rule2` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-2-10-1 — Typographically Unambiguous Identifiers ([`Rule2101`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2101.cpp)):**
+  - Traverses user-declared `NamedDecl` nodes (`VarDecl`, `FunctionDecl`, `FieldDecl`, `TypedefNameDecl`, `TagDecl`, `EnumConstantDecl`, `NamespaceDecl`) in project files (`.h` and `.cpp`), excluding implicit declarations, constructors, destructors, conversion operators, and overloaded operators.
+  - Normalizes each identifier into a canonical typographic skeleton by removing underscores (`_`), folding ASCII letters to lowercase, collapsing `"rn"` into `"m"`, and mapping visually similar characters to single representatives (`{O, o, 0} -> 0`, `{I, i, l, 1} -> 1`, `{Z, z, 2} -> 2`, `{S, s, 5} -> 5`, `{B, b, 8} -> 8`).
+  - Reports a violation when two distinct identifier strings (`rawName1 != rawName2`) normalize to the same canonical skeleton.
+
+- **MISRA-2-10-2 — Identifier Hiding Across Nested Scopes ([`Rule2102`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2102.cpp)):**
+  - Uses a `RecursiveASTVisitor` that maintains a stack of active lexical scopes across `TranslationUnitDecl`, `NamespaceDecl`, `RecordDecl`/`CXXRecordDecl`, `EnumDecl`, `FunctionDecl`/`CXXMethodDecl`, `CompoundStmt`, `ForStmt`, `CXXForRangeStmt`, `WhileStmt`, `IfStmt`, and `SwitchStmt`.
+  - Checks each newly declared identifier against all strictly outer scopes on the stack, reporting when an inner-scope declaration hides an outer-scope identifier of the same name.
+  - Excludes parameter names on bodiless function prototypes and out-of-line method redeclarations to prevent false positives across header/source splits.
+
+- **MISRA-2-10-3 — Unique `typedef` Identifiers ([`Rule2103`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2103.cpp)):**
+  - Computes the enclosing namespace qualification string for each declaration by walking parent `NamespaceDecl` contexts (so declarations in distinct namespaces such as `NS1::WIDTH` and `NS2::WIDTH` remain distinct, while local declarations in functions within the same namespace share the same enclosing namespace qualification).
+  - Flags any subsequent declaration with a different canonical declaration that reuses a `TypedefNameDecl` identifier within the same namespace qualification.
+
+- **MISRA-2-10-4 — Unique Class, Union, or Enum Identifiers ([`Rule2104`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2104.cpp)):**
+  - Tracks user-declared `TagDecl` (`class`, `struct`, `union`, `enum`) identifiers qualified by their enclosing namespace hierarchy across project headers and source files.
+  - Reports any declaration with a different canonical declaration that reuses a `TagDecl` identifier within the same namespace qualification across scopes.
+  - Defers same-scope collisions between a `TagDecl` and a `VarDecl`/`FunctionDecl` (such as `struct vector { ... } vector;`) to `Rule2106` (`MISRA-2-10-6`).
+
+- **MISRA-2-10-6 — Type vs. Object/Function Identifier in the Same Scope ([`Rule2106`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2106.cpp)):**
+  - Groups declarations by `(DeclContext::getRedeclContext(), identifierName)` and tracks whether each identifier in a scope refers to a type (`TagDecl`, `TypedefNameDecl`) and/or an object or function (`VarDecl`, `FunctionDecl`, `FieldDecl`).
+  - Deduplicates declarations by `getCanonicalDecl()` so functions or types that are both declared and defined in the same scope are reported only once.
+  - Reports the violation at the identifier token location (`d->getLocation()`) so inline variable definitions following a struct definition (`}vector; //Noncompliant`) are reported on the exact offending line.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule2101.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2101.h) / [Rule2101.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2101.cpp) | Implemented Rule 2-10-1 checker for typographically unambiguous identifiers. |
+| [Rule2102.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2102.h) / [Rule2102.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2102.cpp) | Implemented Rule 2-10-2 checker for inner-scope identifier hiding (`shadowing`). |
+| [Rule2103.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2103.h) / [Rule2103.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2103.cpp) | Implemented Rule 2-10-3 checker for `typedef` identifier uniqueness within a namespace qualification. |
+| [Rule2104.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2104.h) / [Rule2104.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2104.cpp) | Implemented Rule 2-10-4 checker for class, union, and enum identifier uniqueness within a namespace qualification. |
+| [Rule2106.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2106.h) / [Rule2106.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2106.cpp) | Implemented Rule 2-10-6 checker for identifiers referring to both a type and an object/function in the same scope. |
+| [Rule013.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule013.cpp) / [Rule018.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule018.cpp) | Refined unused-variable and side-effect-free function heuristics on declaration-only test stubs to avoid false positives on `tests/Rule2`. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule2101`, `Rule2102`, `Rule2103`, `Rule2104`, and `Rule2106` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `src/rules/Rule2/Rule210*.cpp` sources and `src/rules/Rule2` include directory. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule2 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+
+# Run individual Rule2 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule2\Rule2101.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2\Rule2102.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2\Rule2103.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2\Rule2104.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2\Rule2106.cpp -- -std=c++17
+
+# Run Rule0 regression test suite and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (7 / 7 test suites):**
+  - [Rule2101.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule2/Rule2101.cpp): **PASS** — 6 `MISRA-2-10-1` violations at lines 9 (`id1_num_val`), 12 (`id2_numVal`), 15 (`id3_Ivalue`), 18 (`id4_xy2`), 21 (`id5_zer0`), and 24 (`id6_m`), 0 false positives.
+  - [Rule2102.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule2/Rule2102.cpp): **PASS** — 2 `MISRA-2-10-2` violations at lines 15 (`varInit` hiding global `varInit`) and 24 (`index` in inner loop hiding outer loop `index`), 0 false positives.
+  - [Rule2103.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule2/Rule2103.cpp): **PASS** — 1 `MISRA-2-10-3` violation at line 19 (`float TYPE;` in `f2()` conflicting with `typedef int TYPE;` in `f1()`), 0 false positives (`NS2::WIDTH` at line 11 is compliant).
+  - [Rule2104.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule2/Rule2104.cpp) & [Rule2104.h](file:///c:/Users/HanLo/Projects/misra/tests/Rule2/Rule2104.h): **PASS** — 1 `MISRA-2-10-4` violation at line 18 (`float floatVar;` in `f2()` conflicting with `class floatVar` in `f1()`), 0 false positives.
+  - [Rule2106.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule2/Rule2106.cpp): **PASS** — 1 `MISRA-2-10-6` violation at line 10 (`}vector; //Noncompliant`), 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected with 0 false positives from `Rule2`.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Per-Translation-Unit Traversal:** `Rule2101`, `Rule2102`, `Rule2103`, `Rule2104`, and `Rule2106` analyze each translation unit (including all transitively `#include`d project `.h` files filtered by `ProjectFileFilter`). Identifiers declared across completely unrelated `.cpp` files that do not share a header are evaluated independently within their respective translation units, preventing cross-test interference when scanning test directories.
+- **Preprocessor Macros:** Checks operate on Clang AST `NamedDecl` nodes after preprocessing; macro names `#define`d and consumed before AST construction are not inspected as AST declarations.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All five `Rule2` checkers (`2-10-1`, `2-10-2`, `2-10-3`, `2-10-4`, and `2-10-6`) are implemented, integrated, built, and verified against all `tests/Rule2` and `tests/Rule0` suites.
+

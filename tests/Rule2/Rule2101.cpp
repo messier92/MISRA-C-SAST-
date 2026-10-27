@@ -6,20 +6,20 @@
 
 void func(void) {
     int id1_numval;
-    int id1_num_val;  //Non-compliant
+    int id1_num_val;  //Noncompliant
 
     int id2_numval;
-    int id2_numVal;   //Non-compliant
+    int id2_numVal;   //Noncompliant
 
     int id3_lvalue;
-    int id3_Ivalue;   //Non-compliant
+    int id3_Ivalue;   //Noncompliant
 
     int id4_xyZ;
-    int id4_xy2;      //Non-compliant
+    int id4_xy2;      //Noncompliant
 
     int id5_zerO;
-    int id5_zer0;     //Non-compliant
+    int id5_zer0;     //Noncompliant
 
     int id6_rn;
-    int id6_m;        //Non-compliant
+    int id6_m;        //Noncompliant
 }

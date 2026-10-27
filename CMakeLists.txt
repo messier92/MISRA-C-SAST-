@@ -62,6 +62,11 @@ set(MISRA_SOURCES
     src/rules/Rule0/Rule017.cpp
     src/rules/Rule0/Rule018.cpp
     src/rules/Rule0/Rule019.cpp
+    src/rules/Rule2/Rule2101.cpp
+    src/rules/Rule2/Rule2102.cpp
+    src/rules/Rule2/Rule2103.cpp
+    src/rules/Rule2/Rule2104.cpp
+    src/rules/Rule2/Rule2106.cpp
     src/rules/Rule5/Rule524.cpp
     # Add more rule .cpp files here.
 )
@@ -73,6 +78,7 @@ target_include_directories(misra_checker PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/rules
     ${CMAKE_SOURCE_DIR}/src/rules/Rule0
+    ${CMAKE_SOURCE_DIR}/src/rules/Rule2
     ${CMAKE_SOURCE_DIR}/src/rules/Rule5
 )
 

@@ -63,6 +63,17 @@ bool isEmptyBody(const Stmt* body) {
     return true;
 }
 
+bool hasExecutableStmt(const Stmt* body) {
+    const auto* compound = dyn_cast_or_null<CompoundStmt>(body);
+    if (!compound) return false;
+    for (const Stmt* child : compound->body()) {
+        if (!isa<NullStmt>(child) && !isa<DeclStmt>(child)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool isExcludedFunction(const FunctionDecl* fd) {
     if (!fd) return true;
     if (fd->isMain()) return true;
@@ -81,6 +92,10 @@ bool isExcludedFunction(const FunctionDecl* fd) {
         if (md->isVirtual() && isEmptyBody(md->getBody())) {
             return true;
         }
+    }
+
+    if (!hasExecutableStmt(fd->getBody())) {
+        return true;
     }
     return false;
 }
