@@ -48,6 +48,10 @@ bool hasExplicitValueInit(const VarDecl* vd) {
     if (!init) return false;
     init = init->IgnoreImplicit();
 
+    if (isa<ExplicitCastExpr>(init) || isa<CXXTemporaryObjectExpr>(init)) {
+        return false;
+    }
+
     if (const auto* construct = dyn_cast<CXXConstructExpr>(init)) {
         if (construct->getNumArgs() == 0 &&
             vd->getInitStyle() == VarDecl::CallInit &&
@@ -360,7 +364,8 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
                     }
                 }
 
-                if (!canReachRead && canReachOverwrite) {
+                if (!canReachRead && canReachOverwrite &&
+                    funcAccess.readVars_.count(targetVar) > 0) {
                     report(s->getBeginLoc(),
                            "Value assigned to '" + targetVar->getNameAsString() +
                            "' is overwritten before being used.");

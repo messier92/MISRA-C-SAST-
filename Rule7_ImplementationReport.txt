@@ -1,0 +1,83 @@
+## Implementation Report: `Rule7` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-7-1-1 — Variables Not Modified Shall Be `const` Qualified ([`Rule711`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule7/Rule711.cpp)):**
+  - Matches `FunctionDecl` definitions (`isThisDeclarationADefinition()`, `hasBody()`, excluding implicit declarations, virtual member functions, overloaded operators, and template declarations/instantiations) and analyzes non-`const` function parameters (`ParmVarDecl`) and local variables (`VarDecl` with `isLocalVarDecl() && !isStaticLocal()`).
+  - Uses `FunctionVarAnalyzer` and `getDirectModifiedVar` to track variable modifications and reads by canonical `VarDecl*` identity across the function body (`CompoundStmt`), covering:
+    - Direct and compound assignments (`=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`) and overloaded assignment calls (`CXXOperatorCallExpr::isAssignmentOp()`).
+    - Prefix and postfix increment/decrement operations (`++`, `--`) and overloaded `operator++`/`operator--`.
+    - Address-of expressions (`&var`), non-`const` member function calls on value objects, reference arguments passed to functions or constructors (`LValueReferenceType`, `RValueReferenceType`), and array-to-pointer decay arguments.
+  - Distinguishes pointer modification (`p = ...`, `++p`, `&p`) from pointee modification (`*p = ...`, `p[i] = ...`, `p->field = ...`) and checks outer pointer constness (`qt.isConstQualified()`, i.e. `T* const`) separately from pointee constness (`const T*`), flagging `const char* str` in `getNthChar(const char* str, int N)` while treating `const char* const str` in `getNthChar_const_safe(const char* const str, int N)` as compliant.
+  - Excludes function parameters of integer, floating-point, enum, boolean, and reference types (`isExcludedParamType`) as required by the rule specification.
+
+- **MISRA-7-3-1 — Global Namespace Declarations ([`Rule731`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule7/Rule731.cpp)):**
+  - Inspects `TranslationUnitDecl` using `GlobalNamespaceContextScanner` and `GlobalNamespaceVisitor` to verify that only `main`, `namespace` declarations (`NamespaceDecl` and `NamespaceAliasDecl`), and `extern "C"` declarations (`LinkageSpecDecl` with `LinkageSpecLanguageIDs::C`) reside in the global namespace.
+  - Traverses top-level declarations and skips traversing inside `NamespaceDecl` (both named and anonymous namespaces) and `extern "C"` `LinkageSpecDecl` blocks, while descending into `extern "C++"` linkage blocks and scanning function bodies for block-scope `extern` declarations (`isLocalExternDecl()`) whose semantic `DeclContext` is the global `TranslationUnitDecl`.
+  - Exempts the global `main` function via `isGlobalMainFunction` (supporting both standard hosted mode `fd->isMain()` and `-ffreestanding` mode where top-level `main` is checked by identifier and semantic global context) and reports noncompliant global functions (`void foo(int32_t);`, `extern void foo3();`), global variables (`int32_t var1;`), global classes/structs/enums, and global typedefs/type aliases.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule711.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule7/Rule711.h) / [Rule711.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule7/Rule711.cpp) | Implemented Rule 7-1-1 checker for unmodified variables and pointer parameters lacking `const` qualification. |
+| [Rule731.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule7/Rule731.h) / [Rule731.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule7/Rule731.cpp) | Implemented Rule 7-3-1 checker enforcing that the global namespace only contains `main`, `namespace` declarations, and `extern "C"` declarations. |
+| [Rule621.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule621.cpp) | Added template guard (`isDependentContext()` / `getDescribedFunctionTemplate()`) when traversing function declarations. |
+| [Rule665.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule665.cpp) | Added template guard and pointer-traversal `while`-loop helper exemption to avoid false-positive `MISRA-6-6-5` reports on `Rule711.cpp` and `Rule311.h`. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule711` and `Rule731` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `Rule711.cpp` and `Rule731.cpp` to `MISRA_SOURCES`. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule7 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule7 -- -std=c++17
+
+# Run individual Rule7 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule7\Rule711.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule7\Rule731.cpp -- -std=c++17
+
+# Run Rule6, Rule5, Rule3, Rule2, and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule6 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (8 / 8 test suites):**
+  - [Rule711.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule7/Rule711.cpp): **PASS** — 1 `MISRA-7-1-1` violation at line 12 (`char getNthChar(const char* str, int N){//Noncompliant` for unmodified pointer parameter `str` without top-level `const`), 0 false positives (`getNthChar_const_safe(const char* const str, int N)` on line 21 is compliant, and integer parameter `int N` is excluded).
+  - [Rule731.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule7/Rule731.cpp): **PASS** — 3 `MISRA-7-3-1` violations at line 8 (`void foo(int32_t); //Noncompliant`), line 9 (`int32_t var1; //Noncompliant`), and line 27 (`extern void foo3(); //Noncompliant`), 0 false positives (unnamed namespace `namespace { ... }`, named namespace `namespace ns_foo { ... }`, namespace alias `namespace ns_x = ns_foo;`, and `int main()` are all unflagged).
+  - `tests/Rule6` Regression Suite: **PASS** — All 4 expected `Rule6` violations detected, 0 false positives.
+  - `tests/Rule5` Regression Suite: **PASS** — All 9 expected `Rule5` violations detected, 0 false positives.
+  - `tests/Rule3` Regression Suite: **PASS** — All 9 expected `Rule3` violations detected, 0 false positives.
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected, 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected, 0 false positives.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Freestanding Compilation Flag (`-ffreestanding`) and `FunctionDecl::isMain()`:** Because `main.cpp` injects `-ffreestanding` into Clang's compilation arguments, Clang's `FunctionDecl::isMain()` returns `false` on `int main()`. `Rule731` accounts for this by checking both `fd->isMain()` and whether the non-local-`extern` function identifier is `"main"` declared directly in the top-level `TranslationUnitDecl`.
+
+---
+
+### 6. Outstanding Issues
+
+- None. Both `Rule7` checkers (`7-1-1` and `7-3-1`) are implemented, integrated, built, and verified against all `tests/Rule7`, `tests/Rule6`, `tests/Rule5`, `tests/Rule3`, `tests/Rule2`, and `tests/Rule0` suites. No new external dependencies were introduced.
+

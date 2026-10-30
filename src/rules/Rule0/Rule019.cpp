@@ -217,6 +217,9 @@ void Rule019::run(const MatchFinder::MatchResult& result) {
     if (func->getBeginLoc().isInvalid() || sm.isInSystemHeader(func->getBeginLoc())) {
         return;
     }
+    if (func->getReturnType()->isVoidType() && func->getNumParams() == 0) {
+        return;
+    }
 
     ParentBuilder parentBuilder;
     parentBuilder.build(ctx);

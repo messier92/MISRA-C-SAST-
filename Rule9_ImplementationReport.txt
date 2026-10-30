@@ -1,0 +1,94 @@
+## Implementation Report: `Rule9` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-9-3-1 — `const` Member Functions Returning Non-`const` Pointers or References to Class Data ([`Rule931`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule931.cpp)):**
+  - Matches `CXXMethodDecl` definitions (`isDefinition()`, `hasBody()`, excluding implicit declarations and uninstantiated function templates) that are `const`-qualified (`method->isConst()`).
+  - Inspects the canonical return type (`method->getReturnType().getCanonicalType()`) to determine whether the member function returns a pointer or reference to a non-`const` pointee (`(canonRet->isPointerType() || canonRet->isReferenceType()) && !canonRet->getPointeeType().isConstQualified()`).
+  - Traverses the member function body via `ReturnStmtCollector` (stopping at nested `LambdaExpr` and `CXXRecordDecl` boundaries) and inspects each returned expression using `refersToNonStaticClassData` and `hasThisBase`.
+  - Distinguishes non-static data members (`FieldDecl` and `IndirectFieldDecl` accessed on `CXXThisExpr`, including `&rInt`, `this->field`, array subscripting, and pointer arithmetic) from `static` data members (`VarDecl`), local variables, parameters, and external objects, reporting at most one violation per offending member function.
+
+- **MISRA-9-3-3 — Member Functions That Can Be Made `static` or `const` ([`Rule933`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule933.cpp)):**
+  - Matches non-static `CXXMethodDecl` definitions (`!method->isStatic()`, `hasBody()`, excluding implicit/defaulted/deleted methods, constructors `CXXConstructorDecl`, destructors `CXXDestructorDecl`, conversion operators `CXXConversionDecl`, overloaded operators `isOverloadedOperator()`, virtual methods `isVirtual()`, and template patterns/specializations).
+  - Evaluates each member function in strict two-step priority order using `MethodAccessVisitor`:
+    1. **Check 1 (`static` candidate — highest precedence):** Determines whether the function accesses any non-static data member (`FieldDecl` / `IndirectFieldDecl`) or calls any non-static member function on `CXXThisExpr`. Accesses to `static` data members (`VarDecl`, such as `m_s` in `foo3()`) or calls to global functions (`Connector()`) do not count as non-static class data accesses. If no non-static data member of `this` is accessed, the function is reported as a `static` candidate (even if already declared `const`).
+    2. **Check 2 (`const` candidate):** If the function accesses non-static data members of `this` and is not already `const`, checks whether any non-static data member of `this` is modified via built-in or overloaded assignments (`=`, `+=`, `-=`, etc.), increments/decrements (`++`, `--`), non-`const` member calls on value fields, or passing non-reference value fields by non-`const` reference/pointer. Distinguishes modifying a pointer or reference member itself from accessing or returning the referenced/pointed-to object (`int16_t& getref() { return m_i_ref; }`).
+
+- **MISRA-9-5-1 — Unions Shall Not Be Used ([`Rule951`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule951.cpp)):**
+  - Matches `RecordDecl` AST nodes where `isUnion()` is `true` (`recordDecl(isUnion())`), covering both named and anonymous unions declared at global scope, namespace scope, class/struct scope, or local function scope.
+  - Excludes compiler-synthesized injected-class-name declarations (`rd->isImplicit()`) and implicit template instantiations (`TSK_ImplicitInstantiation`).
+  - Deduplicates forward declarations and definitions of the same union by reporting the definition (`rd->isThisDeclarationADefinition()`) when present in the translation unit, or the canonical first declaration (`rd == rd->getCanonicalDecl()`) when only forward-declared.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule931.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule931.h) / [Rule931.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule931.cpp) | Implemented Rule 9-3-1 checker for `const` member functions returning non-`const` pointers or references to non-static class data. |
+| [Rule933.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule933.h) / [Rule933.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule933.cpp) | Implemented Rule 9-3-3 checker enforcing `static` and `const` qualification on eligible member functions. |
+| [Rule951.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule951.h) / [Rule951.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule9/Rule951.cpp) | Implemented Rule 9-5-1 checker flagging union declarations across all scopes. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule931`, `Rule933`, and `Rule951` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `Rule931.cpp`, `Rule933.cpp`, and `Rule951.cpp` to `MISRA_SOURCES` and `src/rules/Rule9` to `target_include_directories`. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule9 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule9 -- -std=c++17
+
+# Run individual Rule9 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule9\Rule931.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule9\Rule933.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule9\Rule951.cpp -- -std=c++17
+
+# Run Rule7, Rule6, Rule5, Rule3, Rule2, and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule7 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule6 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (10 / 10 test suites):**
+  - [Rule931.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule9/Rule931.cpp): **PASS** — 1 `MISRA-9-3-1` violation at line 15 (`int* getR() const{ //Noncompliant` returning `&rInt`), 0 false positives (`const int* getConstR() const` at line 19 is compliant and unflagged).
+  - [Rule933.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule9/Rule933.cpp): **PASS** — 4 `MISRA-9-3-3` violations:
+    - Line 19: `int16_t foo ( ) // Noncompliant` (`can be declared const`)
+    - Line 23: `int16_t foo2 ( ) // Noncompliant` (`can be declared const`)
+    - Line 28: `int16_t foo3 ( ) // Noncompliant` (`can be declared static`)
+    - Line 36: `int16_t& getref()//Noncompliant` (`can be declared const`)
+    - 0 false positives (`int16_t inc_m ( ) // Compliant` at line 32 is unflagged).
+  - [Rule951.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule9/Rule951.cpp): **PASS** — 1 `MISRA-9-5-1` violation at line 8 (`union Pi{ //Noncompliant`), 0 false positives.
+  - `tests/Rule7` Regression Suite: **PASS** — All 4 expected `Rule7` violations detected, 0 false positives.
+  - `tests/Rule6` Regression Suite: **PASS** — All 4 expected `Rule6` violations detected, 0 false positives.
+  - `tests/Rule5` Regression Suite: **PASS** — All 9 expected `Rule5` violations detected, 0 false positives.
+  - `tests/Rule3` Regression Suite: **PASS** — All 9 expected `Rule3` violations detected, 0 false positives.
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected, 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected, 0 false positives.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **External Side Effects in Global Callees (`Rule 9-3-3`):** In accordance with the `Rule 9-3-3` specification and `tests/Rule9/Rule933.cpp` (`foo2()` calling `void Connector(void);`), calls to external/global functions that do not take non-`const` references or pointers to class data members do not prevent a member function from being flagged as a `const` candidate.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All three `Rule9` checkers (`9-3-1`, `9-3-3`, and `9-5-1`) are implemented, integrated, built, and verified against all `tests/Rule9`, `tests/Rule7`, `tests/Rule6`, `tests/Rule5`, `tests/Rule3`, `tests/Rule2`, and `tests/Rule0` suites. No new external dependencies were introduced.
+

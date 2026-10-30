@@ -1,50 +1,45 @@
 ================================================================
   MISRA C++:2008 Static Analysis Report
-  Tag: 2026-10-26 22:20:10
+  Tag: 2026-10-31 00:09:43
 ================================================================
 
-Scanned files (6):
-  tests\Rule0\Rule011.cpp
-  tests\Rule0\Rule013.cpp
-  tests\Rule0\Rule016.cpp
-  tests\Rule0\Rule017.cpp
-  tests\Rule0\Rule018.cpp
-  tests\Rule0\Rule019.cpp
+Scanned files (2):
+  tests\Rule7\Rule711.cpp
+  tests\Rule7\Rule731.cpp
 
-Violations (11):
+Violations (2):
 ------------------------------------------------------------------------
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule011.cpp:8:6  [MISRA-0-1-1]  Unreachable code detected.
-    | temp = arg; // Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule011.cpp:19:2  [MISRA-0-1-1]  Unreachable code detected.
-    | arg++; // Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule013.cpp:15:5  [MISRA-0-1-3]  Member variable 'string3' is declared but never read or written.
-    | std::string string3; //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule013.cpp:44:5  [MISRA-0-1-3]  Member variable 'pad' is declared but never read or written.
-    | unsigned char pad : 1; // Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule016.cpp:34:5  [MISRA-0-1-6]  Variable 'tinyUnit' is initialized with a value that is never subsequently used.
-    | largeInteger tinyUnit{0,1,0}; //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule017.cpp:30:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
-    | assignMemory(&val);   //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule017.cpp:34:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
-    | numVec.erase(std::unique(numVec.begin(), numVec.end()), numVec.end());// Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:24:1  [MISRA-0-1-8]  Function 'init' has void return type but no external side effects.
-    | void init ( int refToInt )          // Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:29:1  [MISRA-0-1-8]  Function 'transform' has void return type but no external side effects.
-    | void transform(double theta) //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:33:1  [MISRA-0-1-8]  Function 'foo' has void return type but no external side effects.
-    | void foo(int val){ //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule0\Rule019.cpp:12:9  [MISRA-0-1-9]  Dead code: value assigned to 'res' is never subsequently used.
-    | res = 0; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule7\Rule711.cpp:16:4  [MISRA-6-6-5]  Function 'getNthChar' has multiple return statements [MISRA-6-6-5]
+    | return *(str+N);
+C:\Users\HanLo\Projects\misra\tests\Rule7\Rule711.cpp:26:7  [MISRA-6-6-5]  Function 'getNthChar_const_safe' has multiple return statements [MISRA-6-6-5]
+    | return *(str+N);
 ------------------------------------------------------------------------
 
 Summary by rule:
-  MISRA-0-1-1         2 violations
-  MISRA-0-1-3         2 violations
-  MISRA-0-1-6         1 violation
-  MISRA-0-1-7         2 violations
-  MISRA-0-1-8         3 violations
-  MISRA-0-1-9         1 violation
+  MISRA-0-1-1         0 violations
+  MISRA-0-1-3         0 violations
+  MISRA-0-1-6         0 violations
+  MISRA-0-1-7         0 violations
+  MISRA-0-1-8         0 violations
+  MISRA-0-1-9         0 violations
+  MISRA-2-10-1        0 violations
+  MISRA-2-10-2        0 violations
+  MISRA-2-10-3        0 violations
+  MISRA-2-10-4        0 violations
+  MISRA-2-10-6        0 violations
+  MISRA-3-1-1         0 violations
+  MISRA-3-2-2         0 violations
+  MISRA-3-2-3         0 violations
+  MISRA-3-9-1         0 violations
+  MISRA-5-0-4         0 violations
+  MISRA-5-0-6         0 violations
+  MISRA-5-0-8         0 violations
   MISRA-5-2-4         0 violations
+  MISRA-5-3-1         0 violations
+  MISRA-6-2-1         0 violations
+  MISRA-6-4-5         0 violations
+  MISRA-6-5-1         0 violations
+  MISRA-6-6-5         2 violations
 
-  Total: 11 violations
+  Total: 2 violations
 ================================================================

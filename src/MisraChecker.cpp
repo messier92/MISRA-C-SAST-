@@ -15,18 +15,14 @@ MisraConsumer::MisraConsumer(std::vector<std::unique_ptr<Rule>>& rules,
     : rules_(rules), store_(store), db_(db) {}
 
 void MisraConsumer::HandleTranslationUnit(clang::ASTContext& ctx) {
-    // Wire up each rule with the current TU's context.
-    clang::ast_matchers::MatchFinder finder;
-
     for (auto& rule : rules_) {
+        clang::ast_matchers::MatchFinder finder;
         rule->setStore(store_);
         rule->setDatabase(db_);
         rule->setContext(&ctx);
         rule->registerMatchers(finder);
+        finder.matchAST(ctx);
     }
-
-    // Run all matchers in a single AST traversal.
-    finder.matchAST(ctx);
 }
 
 // ── MisraChecker (FrontendAction) ──────────────────────────────

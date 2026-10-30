@@ -71,7 +71,20 @@ set(MISRA_SOURCES
     src/rules/Rule3/Rule322.cpp
     src/rules/Rule3/Rule323.cpp
     src/rules/Rule3/Rule391.cpp
+    src/rules/Rule5/Rule504.cpp
+    src/rules/Rule5/Rule506.cpp
+    src/rules/Rule5/Rule508.cpp
     src/rules/Rule5/Rule524.cpp
+    src/rules/Rule5/Rule531.cpp
+    src/rules/Rule6/Rule621.cpp
+    src/rules/Rule6/Rule645.cpp
+    src/rules/Rule6/Rule651.cpp
+    src/rules/Rule6/Rule665.cpp
+    src/rules/Rule7/Rule711.cpp
+    src/rules/Rule7/Rule731.cpp
+    src/rules/Rule9/Rule931.cpp
+    src/rules/Rule9/Rule933.cpp
+    src/rules/Rule9/Rule951.cpp
     # Add more rule .cpp files here.
 )
 
@@ -85,6 +98,9 @@ target_include_directories(misra_checker PRIVATE
     ${CMAKE_SOURCE_DIR}/src/rules/Rule2
     ${CMAKE_SOURCE_DIR}/src/rules/Rule3
     ${CMAKE_SOURCE_DIR}/src/rules/Rule5
+    ${CMAKE_SOURCE_DIR}/src/rules/Rule6
+    ${CMAKE_SOURCE_DIR}/src/rules/Rule7
+    ${CMAKE_SOURCE_DIR}/src/rules/Rule9
 )
 
 # ── Link libraries ──────────────────────────────────────────────

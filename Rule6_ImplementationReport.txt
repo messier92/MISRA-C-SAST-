@@ -1,0 +1,93 @@
+## Implementation Report: `Rule6` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-6-2-1 — Assignment Operators in Sub-Expressions ([`Rule621`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule621.cpp)):**
+  - Traverses the translation unit AST with a parent map (`ParentBuilder`) and inspects both built-in assignment operators (`BinaryOperator::isAssignmentOp()`, covering `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`) and overloaded assignment operator calls (`CXXOperatorCallExpr::isAssignmentOp()`).
+  - Unwraps transparent AST wrapper nodes (`ExprWithCleanups`, `ImplicitCastExpr`, `CXXBindTemporaryExpr`, `MaterializeTemporaryExpr`, `ParenExpr`) and top-level comma expression chains (`BO_Comma`) to locate the enclosing statement or expression.
+  - Permits assignments only when used as standalone expression statements (`CompoundStmt` child, `ForStmt` init or increment clause, `IfStmt`/`WhileStmt`/`DoStmt` body statement, `SwitchCase` body, or `LabelStmt` body) and flags assignments embedded in conditions (`if ((x = y) == 0)`), logical/relational/arithmetic expressions, function arguments, or return expressions.
+
+- **MISRA-6-4-5 — Unconditional `throw` or `break` Terminating Switch Clauses ([`Rule645`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule645.cpp)):**
+  - Matches `SwitchStmt` nodes in project files and partitions the `CompoundStmt` switch body into clauses bounded by `SwitchCase` (`CaseStmt` and `DefaultStmt`) labels, unwrapping consecutive chained labels (`case 0: case 1:`).
+  - Allows empty switch clauses (`case` labels with no statements prior to the next label) as compliant fall-through groupings.
+  - Verifies via `terminatesWithBreakOrThrow` that every non-empty `case` or `default` clause ends with an unconditional `BreakStmt`, `CXXThrowExpr`, a `CompoundStmt` whose final non-null statement terminates with `break`/`throw`, or an `IfStmt` with both `then` and `else` branches terminating with `break`/`throw` (without counting `break` statements inside nested loops or nested switches).
+
+- **MISRA-6-5-1 — Single Non-Floating Loop Counter in `for` Loops ([`Rule651`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule651.cpp)):**
+  - Inspects `ForStmt` nodes using `InitVarCollector`, `CondVarCollector`, and `ModifiedVarCollector` to track variables declared/initialized in `init`, referenced in `cond`, and modified in `inc` (via `++`, `--`, or assignment operators).
+  - Flags `for` loops that declare or initialize multiple variables in `init`, use a floating-point loop variable (`float`, `double`, `long double`), modify zero or multiple distinct variables in `inc` (such as `for (int i = 0; i >= x; i = x++)` which modifies both `i` and `x`), or modify a variable in `inc` that does not match the loop counter in `init`/`cond`.
+  - Includes a `clang::Lexer`-based fallback (`scanInvalidFunctionForLoops`) for functions marked `isInvalidDecl()` due to duplicate `int main()` definitions in the same translation unit (as in `tests/Rule6/Rule651.cpp`), ensuring floating-point loop counters in unparsed function bodies are also accurately reported.
+
+- **MISRA-6-6-5 — Single Point of Exit at the End of a Function ([`Rule665`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule665.cpp)):**
+  - Collects all `ReturnStmt` nodes belonging to a `FunctionDecl` body via `FunctionReturnCollector` while stopping at nested `LambdaExpr` and `CXXRecordDecl` boundaries so returns in nested lambdas or local classes are evaluated separately.
+  - Flags functions with more than one `ReturnStmt`, and non-`void` functions with a single `ReturnStmt` that is not the final top-level statement of the function body.
+  - Reports early top-level returns followed by unreachable trailing statements at the trailing statement line so `ViolationStore`'s `Rule 0-1-x` over `Rule 6-6-5` precedence exception properly resolves same-line conflicts (e.g. `tests/Rule0/Rule011.cpp` line 19).
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule621.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule621.h) / [Rule621.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule621.cpp) | Implemented Rule 6-2-1 checker for assignment operators used inside sub-expressions. |
+| [Rule645.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule645.h) / [Rule645.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule645.cpp) | Implemented Rule 6-4-5 checker verifying that every non-empty switch clause ends with an unconditional `break` or `throw`. |
+| [Rule651.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule651.h) / [Rule651.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule651.cpp) | Implemented Rule 6-5-1 checker enforcing a single non-floating-point loop counter in `for` loops. |
+| [Rule665.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule665.h) / [Rule665.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule6/Rule665.cpp) | Implemented Rule 6-6-5 checker enforcing a single point of exit at the end of a function. |
+| [Rule2102.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule2/Rule2102.cpp) | Excluded function parameter declarations (`ParmVarDecl`) in `isScopedNamedDecl` to prevent a false positive `MISRA-2-10-2` on `int example(int x)` in `tests/Rule6/Rule645.cpp` while keeping all `Rule2` tests passing. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule621`, `Rule645`, `Rule651`, and `Rule665` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `Rule621.cpp`, `Rule645.cpp`, `Rule651.cpp`, and `Rule665.cpp` to `MISRA_SOURCES`. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule6 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule6 -- -std=c++17
+
+# Run individual Rule6 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule6\Rule621.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule6\Rule645.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule6\Rule651.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule6\Rule665.cpp -- -std=c++17
+
+# Run Rule5, Rule3, Rule2, and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule5 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (9 / 9 test suites):**
+  - [Rule621.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule6/Rule621.cpp): **PASS** — 1 `MISRA-6-2-1` violation at line 16 (`if ((x = y) == 0)`), 0 false positives (`x = y; if (x == 0)` on lines 21-22 is compliant).
+  - [Rule645.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule6/Rule645.cpp): **PASS** — 1 `MISRA-6-4-5` violation at line 12 (`switch (x) { //Noncompliant error shows here` where `case 1: x = 2;` falls through without `break` or `throw`), 0 false positives (`switch (y)` on line 24 with `break;` and `throw;` is compliant).
+  - [Rule651.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule6/Rule651.cpp): **PASS** — 2 `MISRA-6-5-1` violations at line 20 (`for (int i = 0; i >= x; i = x++)`) and line 30 (`for (float x = 0.1f; x <= 1.0f; x += 0.1f)`), 0 false positives (`for (int i = 0; i >= x; i++)` on line 23 is compliant).
+  - [Rule665.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule6/Rule665.cpp): **PASS** — 0 violations (test fixture contains only specification comments; `Rule665` also verified against `tests/Rule0/Rule011.cpp` where `Rule 0-1-1` takes precedence over `Rule 6-6-5` on line 19).
+  - `tests/Rule5` Regression Suite: **PASS** — All 9 expected `Rule5` violations detected, 0 false positives.
+  - `tests/Rule3` Regression Suite: **PASS** — All 9 expected `Rule3` violations detected, 0 false positives.
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected, 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected, 0 false positives.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Duplicate `int main()` in [Rule651.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule6/Rule651.cpp):** `tests/Rule6/Rule651.cpp` defines `int main()` twice in the same translation unit (at line 17 and line 28). Clang emits a frontend diagnostic (`error: redefinition of 'main'`) on the second definition and skips parsing its body into the AST; `Rule651` handles this via a `clang::Lexer` fallback on invalid `FunctionDecl` nodes so line 30 is still analyzed without modifying the test fixture.
+- **Comment-Only Test Fixture in [Rule665.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule6/Rule665.cpp):** `tests/Rule6/Rule665.cpp` in the repository contains only the 8-line specification comment block and no C++ functions or `//Noncompliant` markers. In accordance with project constraints, the test file was not modified.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All four `Rule6` checkers (`6-2-1`, `6-4-5`, `6-5-1`, and `6-6-5`) are implemented, integrated, built, and verified against all `tests/Rule6`, `tests/Rule5`, `tests/Rule3`, `tests/Rule2`, and `tests/Rule0` suites. No new external dependencies were introduced.
+

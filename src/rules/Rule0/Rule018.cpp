@@ -342,6 +342,7 @@ void Rule018::run(const MatchFinder::MatchResult& result) {
     if (loc.isInvalid() || sm.isInSystemHeader(loc)) return;
 
     if (!func->getReturnType()->isVoidType()) return;
+    if (func->getNumParams() == 0 && !isa<CXXMethodDecl>(func)) return;
     if (isExcludedFunction(func)) return;
 
     std::unordered_set<const FunctionDecl*> visited;

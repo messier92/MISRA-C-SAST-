@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -107,10 +107,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -133,7 +133,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -155,10 +155,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -181,7 +181,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -203,10 +203,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -229,7 +229,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Program Files/llvm-project/llvm/include" /external:I "C:/Program Files/llvm-project/build/include" /external:I "C:/Program Files/llvm-project/clang/include" /external:I "C:/Program Files/llvm-project/build/tools/clang/include"</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -250,10 +250,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;UNICODE;_UNICODE;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\HanLo\Projects\misra\src;C:\Users\HanLo\Projects\misra\src\rules;C:\Users\HanLo\Projects\misra\src\rules\Rule0;C:\Users\HanLo\Projects\misra\src\rules\Rule2;C:\Users\HanLo\Projects\misra\src\rules\Rule3;C:\Users\HanLo\Projects\misra\src\rules\Rule5;C:\Users\HanLo\Projects\misra\src\rules\Rule6;C:\Users\HanLo\Projects\misra\src\rules\Rule7;C:\Users\HanLo\Projects\misra\src\rules\Rule9;C:\Program Files\llvm-project\llvm\include;C:\Program Files\llvm-project\build\include;C:\Program Files\llvm-project\clang\include;C:\Program Files\llvm-project\build\tools\clang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -353,7 +353,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule322.cpp" />
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule323.cpp" />
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule3\Rule391.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule504.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule506.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule508.cpp" />
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule524.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule5\Rule531.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule6\Rule621.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule6\Rule645.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule6\Rule651.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule6\Rule665.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule7\Rule711.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule7\Rule731.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule9\Rule931.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule9\Rule933.cpp" />
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule9\Rule951.cpp" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

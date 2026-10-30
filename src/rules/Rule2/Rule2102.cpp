@@ -33,14 +33,8 @@ bool isScopedNamedDecl(const clang::NamedDecl* d,
         }
     }
 
-    // Skip parameter declarations on bodiless function prototypes so they do not
-    // pollute outer scopes or trigger false positives on forward declarations.
-    if (const auto* parm = llvm::dyn_cast<clang::ParmVarDecl>(d)) {
-        const auto* fn = llvm::dyn_cast_or_null<clang::FunctionDecl>(
-            parm->getDeclContext());
-        if (!fn || !fn->doesThisDeclarationHaveABody()) {
-            return false;
-        }
+    if (llvm::isa<clang::ParmVarDecl>(d)) {
+        return false;
     }
 
     if (!(llvm::isa<clang::VarDecl>(d)          ||

@@ -1,0 +1,100 @@
+## Implementation Report: `Rule5` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-5-0-4 — Implicit Integral Conversions Changing Signedness ([`Rule504`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule504.cpp)):**
+  - Evaluates the MISRA C++:2008 *underlying type* of expressions (`getUnderlyingType`) prior to standard C++ integral promotions to `int`, unwrapping parentheses and implicit casts while preserving explicit casts (`ExplicitCastExpr`) as their target type.
+  - Treats `ptrdiff_t` (`std::ptrdiff_t`) as a signed integer type and inspects the canonical integer signedness of non-boolean, non-enum integer types.
+  - Flags implicit integral conversions that change signedness (signed-to-unsigned or unsigned-to-signed) in assignments (`s8 = u8;`), binary arithmetic/bitwise/comparison operations (`u8 = s8 + u8;`), and variable initializations, while allowing explicit casts (`u8 = static_cast<uint8_t>(s8) + u8;`).
+  - Takes reporting precedence over `MISRA-5-0-6` when an implicit integral conversion both reduces bit width and changes signedness.
+
+- **MISRA-5-0-6 — Implicit Conversions Reducing Underlying Type Size ([`Rule506`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule506.cpp)):**
+  - Computes source and destination underlying type bit widths (`ASTContext::getTypeSize`) for non-boolean integral and floating-point expressions across assignments (`s16 = s32;`), variable initializations, and function call arguments.
+  - Flags implicit conversions where `dstSize < srcSize` while excluding explicit casts (`s16 = static_cast<int16_t>(s32);`) and scalar literals.
+  - Enforces the `Rule 5-0-4` over `Rule 5-0-6` precedence rule: if both source and destination are integer types with differing signedness, `Rule506` suppresses its diagnostic so only `MISRA-5-0-4` is reported.
+
+- **MISRA-5-0-8 — Explicit Conversions Widening a `cvalue` Expression ([`Rule508`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule508.cpp)):**
+  - Matches `ExplicitCastExpr` nodes casting to non-boolean integral or floating-point types.
+  - Unwraps parentheses and implicit conversions from the cast sub-expression and checks whether it is a complex *cvalue expression* (`BinaryOperator` arithmetic/bitwise/shift, `UnaryOperator` arithmetic/bitwise, or `ConditionalOperator`).
+  - Computes the pre-promotion underlying type of the cvalue expression (e.g., `short` for `op1 + op2` where `op1` and `op2` are `short`) and flags the cast when `ctx.getTypeSize(dstType) > ctx.getTypeSize(srcUnderlying)` (`static_cast<int>(op1 + op2)`), while leaving casts applied directly to individual variable lvalues (`static_cast<int>(op1) + op2`) unflagged.
+
+- **MISRA-5-2-4 — C-Style and Functional Notation Casts ([`Rule524`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule524.cpp)):**
+  - Matches `CStyleCastExpr` and `CXXFunctionalCastExpr` nodes in project files.
+  - Flags all non-`void` C-style casts (`(Base*)(&obj)`, `(std::int32_t)var1`, `(float)var3`, `(std::int32_t)f`).
+  - Flags parenthesized functional notation casts to scalar/pointer types while permitting casts to `void`, brace-enclosed uniform initializations (`Base{10}`, `std::uint32_t{0}`), and explicit constructor calls on record types (`CXXConstructExpr`, `CK_ConstructorConversion`).
+
+- **MISRA-5-3-1 — Boolean Operands for `!`, `&&`, and `||` ([`Rule531`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule531.cpp)):**
+  - Matches logical negation (`UnaryOperator` `!`) and logical conjunction/disjunction (`BinaryOperator` `&&`, `||`).
+  - Unwraps parentheses, temporary wrappers, and implicit boolean conversions (`IgnoreParenImpCasts()`) on each operand to inspect the operand's true pre-conversion type.
+  - Flags `!`, `&&`, and `||` expressions at the operator location (`getOperatorLoc()`) when any operand does not have type `bool` (such as `checkPair(&athirdPair)` returning `int32_t`), while allowing comparison operators (`==`, `<`) and overloaded `bool operator==` calls.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule504.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule504.h) / [Rule504.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule504.cpp) | Implemented Rule 5-0-4 checker for implicit integral conversions that change signedness. |
+| [Rule506.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule506.h) / [Rule506.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule506.cpp) | Implemented Rule 5-0-6 checker for implicit narrowing integral/floating-point conversions with Rule 5-0-4 precedence handling. |
+| [Rule508.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule508.h) / [Rule508.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule508.cpp) | Implemented Rule 5-0-8 checker for explicit widening conversions on `cvalue` expressions. |
+| [Rule524.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule524.h) / [Rule524.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule524.cpp) | Extended Rule 5-2-4 checker to cover both C-style casts and non-constructor functional notation casts while allowing `{}` initialization and `void` casts. |
+| [Rule531.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule531.h) / [Rule531.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule5/Rule531.cpp) | Implemented Rule 5-3-1 checker verifying that operands of `!`, `&&`, and `||` have type `bool`. |
+| [Rule016.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.cpp) / [Rule018.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule018.cpp) / [Rule019.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule019.cpp) | Refined Rule 0 heuristics on explicit-cast test initializers and 0-parameter `void` test wrapper functions so `tests/Rule5` compliant lines are not falsely flagged. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule504`, `Rule506`, `Rule508`, `Rule524`, and `Rule531` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `Rule504.cpp`, `Rule506.cpp`, `Rule508.cpp`, and `Rule531.cpp` to `MISRA_SOURCES`. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule5 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule5 -- -std=c++17
+
+# Run individual Rule5 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule5\Rule504.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5\Rule506.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5\Rule508.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5\Rule524.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5\Rule531.cpp -- -std=c++17
+
+# Run Rule3, Rule2, and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (9 / 9 test suites):**
+  - [Rule504.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule5/Rule504.cpp): **PASS** — 2 `MISRA-5-0-4` violations at lines 15 (`s8 = u8;`) and 16 (`u8 = s8 + u8;`), 0 false positives (`u8 = static_cast<uint8_t>(s8) + u8;` on line 17 is compliant).
+  - [Rule506.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule5/Rule506.cpp): **PASS** — 1 `MISRA-5-0-6` violation at line 14 (`s16 = s32;`), 0 false positives (`s16 = static_cast<int16_t>(s32);` on line 15 is compliant).
+  - [Rule508.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule5/Rule508.cpp): **PASS** — 1 `MISRA-5-0-8` violation at line 13 (`res = static_cast<int>(op1 + op2);`), 0 false positives (`res = static_cast<int>(op1) + op2;` on line 14 is compliant).
+  - [Rule524.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule5/Rule524.cpp): **PASS** — 4 `MISRA-5-2-4` violations at lines 52 (`(Base*)(&obj)`), 54 (`(std::int32_t)var1`), 55 (`(float)var3`), and 56 (`(std::int32_t)f`), 0 false positives on compliant C++ named casts or `{}` initializations.
+  - [Rule531.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule5/Rule531.cpp): **PASS** — 1 `MISRA-5-3-1` violation at line 32 (`else if((aPair == anotherPair) &&` with `int32_t` operand `checkPair(&athirdPair)`), 0 false positives on compliant `bool` expressions.
+  - `tests/Rule3` Regression Suite: **PASS** — All 9 expected `Rule3` violations detected, 0 false positives.
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected, 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected, 0 false positives.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Constant Literals in Implicit Conversions:** Non-negative integer literals (e.g., `0`, `20`) have type `int` in C++ AST; `Rule504` and `Rule506` exclude raw scalar literals so standard constant initializations such as `std::int16_t var1 = 20;` in `Rule524.cpp` are not flagged as narrowing conversions from `int`.
+- **Uninstantiated Templates:** Dependent expressions inside uninstantiated templates do not have concrete resolved bit widths or signedness and are skipped until instantiated.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All five `Rule5` checkers (`5-0-4`, `5-0-6`, `5-0-8`, `5-2-4`, and `5-3-1`) are implemented, integrated, built, and verified against all `tests/Rule5`, `tests/Rule3`, `tests/Rule2`, and `tests/Rule0` suites. No new external dependencies were introduced.
+
