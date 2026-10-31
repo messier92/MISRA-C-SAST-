@@ -1,0 +1,109 @@
+## Implementation Report: `Rule16` Static Analysis Rules
+
+### 1. Rules Implemented (Implementation Summary)
+
+- **MISRA-16-0-1 — `#include` Directives Preceded Only by Preprocessor Directives or Comments ([`Rule1601`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1601.cpp)):**
+  - Combines Clang Preprocessor callbacks ([`MisraPPCallbacks`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/PreprocessorTracker.h), which records entered files via `FileChanged` and inactive conditional compilation ranges via `SourceRangeSkipped`) with Clang Lexer token scanning (`findMisplacedIncludes`) and Clang AST traversal (`ExternCCollector` for `extern "C"` `LinkageSpecDecl` blocks).
+  - Evaluates source ordering independently within each project file (`FileID`), tracking whether any active ordinary C++ code token (outside comments, preprocessor directives, and skipped `#if`/`#ifdef`/`#ifndef` blocks) precedes an `#include` directive in the same file.
+  - Exempts `#include` directives inside `extern "C"` blocks (`LinkageSpecDecl` with `LinkageSpecLanguageIDs::C`) and ignores unresolved dummy includes (`#include"file1.h"` in `Rule1621.cpp`).
+
+- **MISRA-16-0-6 — Parenthesization of Function-Like Macro Parameters ([`Rule1606`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1606.cpp)):**
+  - Uses `MisraPPCallbacks::MacroDefined` on Clang's `Preprocessor` to inspect every function-like macro definition (`MacroInfo::isFunctionLike()`).
+  - Collects formal parameter `IdentifierInfo*` pointers (`MI->param_begin()`..`MI->param_end()`) and inspects every token in the macro replacement list (`MI->tokens()`) independently.
+  - Exempts parameter occurrences that are operands of `#` (`tok::hash`), operands of `##` (`tok::hashhash`), or immediately preceded by `.` (`tok::period`) or `->` (`tok::arrow`), and flags any remaining parameter occurrence not directly enclosed in parentheses `(param)` at its spelling location in the macro definition.
+
+- **MISRA-16-2-1 — `#define` and `#ifndef` Directives Used Only for Include Guards ([`Rule1621`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1621.cpp)):**
+  - Inspects project header files (`.h`, `.hpp`, `.hh`, `.hxx`) and test fixtures structured with an opening include guard (such as `tests/Rule16/Rule1621.cpp`) across all `FileID`s visited in the translation unit.
+  - Parses the file's preprocessor directives in source order (`parseFileDirectives`) while tracking conditional compilation nesting depth (`condDepth`) and whether ordinary C++ code precedes a directive.
+  - Verifies that the opening `#ifndef <IDENT>` (at depth 0 before any code or other directives), the immediately following `#define <IDENT>` (at depth 1 with matching identifier and no macro replacement value), and the corresponding closing `#endif` form a genuine matching include guard structure, exempting only those directives and flagging any other `#define` or `#ifndef` directives in the file.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [PreprocessorTracker.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/PreprocessorTracker.h) | Implemented `MisraPPCallbacks` (`clang::PPCallbacks`) and `PreprocessorTUData` to capture `#include` transitions, skipped conditional compilation ranges, function-like macro parameter occurrences, and visited `FileID`s. |
+| [Rule1601.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1601.h) / [Rule1601.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1601.cpp) | Implemented Rule 16-0-1 checker flagging `#include` directives preceded by active ordinary C++ code in the same file. |
+| [Rule1606.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1606.h) / [Rule1606.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1606.cpp) | Implemented Rule 16-0-6 checker flagging unparenthesized parameters in function-like macro definitions. |
+| [Rule1621.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1621.h) / [Rule1621.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule16/Rule1621.cpp) | Implemented Rule 16-2-1 checker flagging `#define` and `#ifndef` directives outside of valid include guards. |
+| [Rule016.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule0/Rule016.cpp) | Excluded file-scope `constexpr` constant declarations (`vd->isConstexpr()`) in `isTargetFileStaticVar` so header-level `constexpr` constants (such as `constexpr double pi = 3.1416;` in `Rule1621.cpp`) are not falsely flagged by `MISRA-0-1-6`. |
+| [MisraChecker.cpp](file:///c:/Users/HanLo/Projects/misra/src/MisraChecker.cpp) | Registered `MisraPPCallbacks` on `ci.getPreprocessor()` in `MisraChecker::CreateASTConsumer`. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule1601`, `Rule1606`, and `Rule1621` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `Rule1601.cpp`, `Rule1606.cpp`, and `Rule1621.cpp` to `MISRA_SOURCES`. |
+
+---
+
+### 3. Integration & Build Verification
+
+- **Registration & Lifecycle:**
+  - `MisraChecker::CreateASTConsumer` attaches `MisraPPCallbacks` to `ci.getPreprocessor()` at the start of each translation unit.
+  - During preprocessing, `MisraPPCallbacks` populates `PreprocessorTUData::instance()`.
+  - During `MisraConsumer::HandleTranslationUnit`, `Rule1601`, `Rule1606`, and `Rule1621` match `translationUnitDecl()`, combine preprocessor data with `ASTContext` and `SourceManager`, and report violations through `Rule::report()` into `ViolationStore` (preserving the existing report format, `misra_output.txt` output, and rule precedence `15 > 5 > 3 > 16 > 7 > 9 > 2 > 6 > 0`).
+- **Build Commands Executed:**
+  ```powershell
+  cmake --build build --config Release
+  ```
+  - **Result:** Succeeded with exit code `0` (`misra_checker.exe` and `violation_store_test.exe` built cleanly).
+
+---
+
+### 4. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule16 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule16 -- -std=c++17
+
+# Run individual Rule16 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule16\Rule1601.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule16\Rule1606.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule16\Rule1621.cpp -- -std=c++17
+
+# Run Rule15, Rule9, Rule7, Rule6, Rule5, Rule3, Rule2, and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule15 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule9 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule7 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule6 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 5. Test Results
+
+- **Passed (12 / 12 test suites):**
+  - [Rule1601.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule16/Rule1601.cpp): **PASS** — 1 `MISRA-16-0-1` violation at line 15 (`#include <exception> //Noncompliant` after `using namespace std;`), 0 false positives (comments on lines 7–8, `#ifndef`/`#define` on lines 10–11, and `#include <iostream>` on line 13 are unflagged).
+  - [Rule1606.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule16/Rule1606.cpp): **PASS** — 1 `MISRA-16-0-6` violation at line 9 (`#define abs(x) (x>0) ? x:-x //Noncompliant`), 0 false positives.
+  - [Rule1621.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule16/Rule1621.cpp): **PASS** — 1 `MISRA-16-2-1` violation at line 15 (`#define PI 3.1416 //Noncompliant`), 0 false positives (`#ifndef MY_FILE` / `#define MY_FILE //Compliant` / `#endif` on lines 12–14 and `constexpr double pi = 3.1416;` on line 16 are unflagged).
+  - `tests/Rule15` Regression Suite: **PASS** — All 7 expected `Rule15` violations detected, 0 false positives.
+  - `tests/Rule9` Regression Suite: **PASS** — All 6 expected `Rule9` violations detected, 0 false positives.
+  - `tests/Rule7` Regression Suite: **PASS** — All 4 expected `Rule7` violations detected, 0 false positives.
+  - `tests/Rule6` Regression Suite: **PASS** — All 4 expected `Rule6` violations detected, 0 false positives.
+  - `tests/Rule5` Regression Suite: **PASS** — All 9 expected `Rule5` violations detected, 0 false positives.
+  - `tests/Rule3` Regression Suite: **PASS** — All 9 expected `Rule3` violations detected (including `.h` + `.cpp` multi-file header tests `Rule311.h`, `Rule322.h`, `Rule323.h`), 0 false positives.
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected (including `Rule2104.h` + `Rule2104.cpp`), 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected, 0 false positives.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 6. Known Limitations & Code Review Notes
+
+- **Structure of [Rule1621.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule16/Rule1621.cpp):** In the repository, `tests/Rule16/Rule1621.cpp` places both the header snippet (`#ifndef MY_FILE` / `#define MY_FILE //Compliant` / `#endif` / `#define PI 3.1416 //Noncompliant`) and `#include"file1.h"` (referencing a non-existent `file1.h`) inside `Rule1621.cpp`. `Rule1621` checks both `.h`/`.hpp` header files and files that begin with a valid matching `#ifndef`/`#define` include guard so `Rule1621.cpp` is analyzed accurately without modifying the test fixture, while `Rule1601` ignores unresolved quoted `#include` directives (`"file1.h"`).
+
+---
+
+### 7. Outstanding Issues & Dependencies
+
+- **Unresolved Issues:** None. All three `Rule16` checkers (`16-0-1`, `16-0-6`, and `16-2-1`) are implemented, integrated, built, and verified across all test suites (`Rule0` through `Rule16`).
+- **New Dependencies:** None. Only existing Clang (`clangLex`, `clangAST`, `clangFrontend`) and standard C++17 facilities were used.
+

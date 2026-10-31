@@ -46,6 +46,13 @@
 #include "rules/Rule9/Rule931.h"
 #include "rules/Rule9/Rule933.h"
 #include "rules/Rule9/Rule951.h"
+#include "rules/Rule15/Rule1535.h"
+#include "rules/Rule15/Rule1536.h"
+#include "rules/Rule15/Rule1537.h"
+#include "rules/Rule15/Rule1551.h"
+#include "rules/Rule16/Rule1601.h"
+#include "rules/Rule16/Rule1606.h"
+#include "rules/Rule16/Rule1621.h"
 // Add more: #include "rules/RuleXYZ.h"
 
 #include "clang/Tooling/ArgumentsAdjusters.h"
@@ -146,6 +153,13 @@ static void createRules(std::vector<std::unique_ptr<misra::Rule>>& rules) {
     rules.push_back(std::make_unique<misra::Rule931>());
     rules.push_back(std::make_unique<misra::Rule933>());
     rules.push_back(std::make_unique<misra::Rule951>());
+    rules.push_back(std::make_unique<misra::Rule1535>());
+    rules.push_back(std::make_unique<misra::Rule1536>());
+    rules.push_back(std::make_unique<misra::Rule1537>());
+    rules.push_back(std::make_unique<misra::Rule1551>());
+    rules.push_back(std::make_unique<misra::Rule1601>());
+    rules.push_back(std::make_unique<misra::Rule1606>());
+    rules.push_back(std::make_unique<misra::Rule1621>());
     // ── Add more rules here ──
     // rules.push_back(std::make_unique<misra::Rule504>());
     // rules.push_back(std::make_unique<misra::Rule621>());

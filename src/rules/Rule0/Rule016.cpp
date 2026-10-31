@@ -33,7 +33,7 @@ bool isTargetLocalVar(const VarDecl* vd) {
 
 bool isTargetFileStaticVar(const VarDecl* vd) {
     if (!vd || !vd->isFileVarDecl()) return false;
-    if (vd->isImplicit()) return false;
+    if (vd->isImplicit() || vd->isConstexpr()) return false;
     if (vd->getType().isVolatileQualified() || vd->getType()->isReferenceType()) {
         return false;
     }

@@ -1,4 +1,5 @@
 #include "MisraChecker.h"
+#include "rules/Rule16/PreprocessorTracker.h"
 
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -33,9 +34,11 @@ MisraChecker::MisraChecker(std::vector<std::unique_ptr<Rule>>& rules,
     : rules_(rules), store_(store), db_(db) {}
 
 std::unique_ptr<clang::ASTConsumer>
-MisraChecker::CreateASTConsumer(clang::CompilerInstance& /*ci*/,
+MisraChecker::CreateASTConsumer(clang::CompilerInstance& ci,
                                 llvm::StringRef file) {
     std::cout << "  Analyzing: " << file.str() << "\n";
+    ci.getPreprocessor().addPPCallbacks(
+        std::make_unique<MisraPPCallbacks>(ci.getSourceManager()));
     return std::make_unique<MisraConsumer>(rules_, store_, db_);
 }
 

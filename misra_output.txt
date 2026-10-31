@@ -1,45 +1,228 @@
 ================================================================
   MISRA C++:2008 Static Analysis Report
-  Tag: 2026-10-31 00:09:43
+  Tag: 2026-10-31 11:11:23
 ================================================================
 
-Scanned files (2):
+Scanned files (37):
+  tests\Rule0\Rule011.cpp
+  tests\Rule0\Rule013.cpp
+  tests\Rule0\Rule016.cpp
+  tests\Rule0\Rule017.cpp
+  tests\Rule0\Rule018.cpp
+  tests\Rule0\Rule019.cpp
+  tests\Rule15\Rule1535.cpp
+  tests\Rule15\Rule1536.cpp
+  tests\Rule15\Rule1537.cpp
+  tests\Rule15\Rule1551.cpp
+  tests\Rule16\Rule1601.cpp
+  tests\Rule16\Rule1606.cpp
+  tests\Rule16\Rule1621.cpp
+  tests\Rule2\Rule2101.cpp
+  tests\Rule2\Rule2102.cpp
+  tests\Rule2\Rule2103.cpp
+  tests\Rule2\Rule2104.cpp
+  tests\Rule2\Rule2106.cpp
+  tests\Rule3\Rule311.cpp
+  tests\Rule3\Rule322.cpp
+  tests\Rule3\Rule323.cpp
+  tests\Rule3\Rule391.cpp
+  tests\Rule5\Rule504.cpp
+  tests\Rule5\Rule506.cpp
+  tests\Rule5\Rule508.cpp
+  tests\Rule5\Rule524.cpp
+  tests\Rule5\Rule531.cpp
+  tests\Rule6\Rule621.cpp
+  tests\Rule6\Rule645.cpp
+  tests\Rule6\Rule651.cpp
+  tests\Rule6\Rule665.cpp
   tests\Rule7\Rule711.cpp
   tests\Rule7\Rule731.cpp
+  tests\Rule9\Rule931.cpp
+  tests\Rule9\Rule933.cpp
+  tests\Rule9\Rule951.cpp
+  tests\ViolationStorePrecedenceTest.cpp
 
-Violations (2):
+Violations (70):
 ------------------------------------------------------------------------
-C:\Users\HanLo\Projects\misra\tests\Rule7\Rule711.cpp:16:4  [MISRA-6-6-5]  Function 'getNthChar' has multiple return statements [MISRA-6-6-5]
-    | return *(str+N);
-C:\Users\HanLo\Projects\misra\tests\Rule7\Rule711.cpp:26:7  [MISRA-6-6-5]  Function 'getNthChar_const_safe' has multiple return statements [MISRA-6-6-5]
-    | return *(str+N);
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule011.cpp:8:6  [MISRA-0-1-1]  Unreachable code detected.
+    | temp = arg; // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule011.cpp:19:2  [MISRA-0-1-1]  Unreachable code detected.
+    | arg++; // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule013.cpp:15:5  [MISRA-0-1-3]  Member variable 'string3' is declared but never read or written.
+    | std::string string3; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule013.cpp:44:5  [MISRA-0-1-3]  Member variable 'pad' is declared but never read or written.
+    | unsigned char pad : 1; // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule016.cpp:34:5  [MISRA-0-1-6]  Variable 'tinyUnit' is initialized with a value that is never subsequently used.
+    | largeInteger tinyUnit{0,1,0}; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule017.cpp:30:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
+    | assignMemory(&val);   //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule017.cpp:34:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
+    | numVec.erase(std::unique(numVec.begin(), numVec.end()), numVec.end());// Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:24:1  [MISRA-0-1-8]  Function 'init' has void return type but no external side effects.
+    | void init ( int refToInt )          // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:29:1  [MISRA-0-1-8]  Function 'transform' has void return type but no external side effects.
+    | void transform(double theta) //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule018.cpp:33:1  [MISRA-0-1-8]  Function 'foo' has void return type but no external side effects.
+    | void foo(int val){ //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule0\Rule019.cpp:12:9  [MISRA-0-1-9]  Dead code: value assigned to 'res' is never subsequently used.
+    | res = 0; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1535.cpp:34:2  [MISRA-15-3-5]  Class type exception 'baseException' shall be caught by reference [MISRA-15-3-5]
+    | catch (baseException e) { //Noncompliant 
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1535.cpp:37:2  [MISRA-15-3-5]  Class type exception 'derivedException' shall be caught by reference [MISRA-15-3-5]
+    | catch (derivedException e) { //Noncompliant 
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1535.cpp:40:2  [MISRA-15-3-5]  Class type exception 'exampleException' shall be caught by reference [MISRA-15-3-5]
+    | catch (exampleException e) { //Noncompliant 
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1536.cpp:25:2  [MISRA-15-3-6]  Exception handler for derived class 'NotANumber' appears after handler for base class 'MathError' [MISRA-15-3-6]
+    | catch ( NotANumber &nan ) // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1536.cpp:30:2  [MISRA-15-3-6]  Exception handler for derived class 'DivideByZero' appears after handler for base class 'MathError' [MISRA-15-3-6]
+    | catch (DivideByZero &dbz)//Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1537.cpp:28:4  [MISRA-15-3-7]  Exception handler appears after catch-all '...' handler [MISRA-15-3-7]
+    | } catch(exception& e2) {     //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule15\Rule1551.cpp:17:13  [MISRA-15-5-1]  Destructor '~myClass' shall not exit with an exception [MISRA-15-5-1]
+    | throw std::logic_error("Error"); //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule16\Rule1601.cpp:15:1  [MISRA-16-0-1]  #include directive shall only be preceded by other preprocessor directives or comments [MISRA-16-0-1]
+    | #include <exception>            //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule16\Rule1606.cpp:9:17  [MISRA-16-0-6]  Parameter 'x' in function-like macro 'abs' shall be enclosed in parentheses [MISRA-16-0-6]
+    | #define abs(x) (x>0) ? x:-x //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule16\Rule1621.cpp:15:1  [MISRA-16-2-1]  #define directive used outside of include guard [MISRA-16-2-1]
+    | #define PI 3.1416 //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2101.cpp:9:9  [MISRA-2-10-1]  Identifier 'id1_num_val' is typographically ambiguous with 'id1_numval' [MISRA-2-10-1]
+    | int id1_num_val;  //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2101.cpp:12:9  [MISRA-2-10-1]  Identifier 'id2_numVal' is typographically ambiguous with 'id2_numval' [MISRA-2-10-1]
+    | int id2_numVal;   //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2101.cpp:15:9  [MISRA-2-10-1]  Identifier 'id3_Ivalue' is typographically ambiguous with 'id3_lvalue' [MISRA-2-10-1]
+    | int id3_Ivalue;   //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2101.cpp:18:9  [MISRA-2-10-1]  Identifier 'id4_xy2' is typographically ambiguous with 'id4_xyZ' [MISRA-2-10-1]
+    | int id4_xy2;      //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2101.cpp:21:9  [MISRA-2-10-1]  Identifier 'id5_zer0' is typographically ambiguous with 'id5_zerO' [MISRA-2-10-1]
+    | int id5_zer0;     //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2101.cpp:24:9  [MISRA-2-10-1]  Identifier 'id6_m' is typographically ambiguous with 'id6_rn' [MISRA-2-10-1]
+    | int id6_m;        //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2102.cpp:15:9  [MISRA-2-10-2]  Identifier 'varInit' declared in an inner scope hides an identifier in an outer scope [MISRA-2-10-2]
+    | int varInit = 0; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2102.cpp:24:15  [MISRA-2-10-2]  Identifier 'index' declared in an inner scope hides an identifier in an outer scope [MISRA-2-10-2]
+    | for(int index = 0; index < dim2; index++) { //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2103.cpp:19:11  [MISRA-2-10-3]  Typedef name 'TYPE' shall be a unique identifier [MISRA-2-10-3]
+    | float TYPE; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2104.cpp:18:11  [MISRA-2-10-4]  Class, union or enum name 'floatVar' shall be a unique identifier [MISRA-2-10-4]
+    | float floatVar; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule2\Rule2106.cpp:10:2  [MISRA-2-10-6]  Identifier 'vector' refers to both a type and an object or function in the same scope [MISRA-2-10-6]
+    | }vector; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:15:6  [MISRA-3-1-1]  Function 'F3' defined or declared static in a header file violates the One Definition Rule [MISRA-3-1-1]
+    | void F3()         //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:28:14  [MISRA-3-1-1]  Variable 'a' defined in a header file violates the One Definition Rule [MISRA-3-1-1]
+    | std::int32_t a;                       //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:36:25  [MISRA-3-1-1]  Variable 'f' defined in a header file violates the One Definition Rule [MISRA-3-1-1]
+    | static std::int32_t f;                 //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:37:17  [MISRA-3-1-1]  Function 'F6' defined or declared static in a header file violates the One Definition Rule [MISRA-3-1-1]
+    | static void F6() noexcept;             //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule322.cpp:15:1  [MISRA-3-2-2]  Multiple definitions of 'Packet' differ by at least one token [MISRA-3-2-2]
+    | }; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp:6:12  [MISRA-3-2-3]  External object 'systemStatus' is declared in multiple files [MISRA-3-2-3]
+    | extern int systemStatus; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp:8:21  [MISRA-3-2-3]  External object 'messageCount' is declared in multiple files [MISRA-3-2-3]
+    | extern unsigned int messageCount; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp:12:16  [MISRA-3-2-3]  External object 'Diagnostics::errorCode' is declared in multiple files [MISRA-3-2-3]
+    | extern int errorCode; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule3\Rule391.cpp:9:15  [MISRA-3-9-1]  Type of object 'map' ('intptr') is not token-for-token identical to previous declaration ('int *') [MISRA-3-9-1]
+    | extern intptr map; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule504.cpp:15:5  [MISRA-5-0-4]  Implicit integral conversion changes signedness of underlying type [MISRA-5-0-4]
+    | s8 = u8; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule504.cpp:16:10  [MISRA-5-0-4]  Implicit integral conversion changes signedness of underlying type [MISRA-5-0-4]
+    | u8 = s8 + u8; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule506.cpp:14:5  [MISRA-5-0-6]  Implicit conversion reduces the size of the underlying type [MISRA-5-0-6]
+    | s16 = s32;   //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule508.cpp:13:12  [MISRA-5-0-8]  Explicit conversion increases the size of the underlying type of a cvalue expression [MISRA-5-0-8]
+    | res = static_cast<int> (op1 + op2); //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule524.cpp:52:15  [MISRA-5-2-4]  C-style cast used; prefer static_cast, const_cast, or reinterpret_cast [MISRA-5-2-4]
+    | Base* obj2 = (Base*)(&obj); //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule524.cpp:54:22  [MISRA-5-2-4]  C-style cast used; prefer static_cast, const_cast, or reinterpret_cast [MISRA-5-2-4]
+    | std::int32_t var3 = (std::int32_t)var1;                   // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule524.cpp:55:12  [MISRA-5-2-4]  C-style cast used; prefer static_cast, const_cast, or reinterpret_cast [MISRA-5-2-4]
+    | float f = (float)var3;                                 // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule524.cpp:56:22  [MISRA-5-2-4]  C-style cast used; prefer static_cast, const_cast, or reinterpret_cast [MISRA-5-2-4]
+    | std::int32_t var6 = (std::int32_t)f;                   // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule5\Rule531.cpp:32:36  [MISRA-5-3-1]  Operand of logical '&&' operator does not have type bool [MISRA-5-3-1]
+    | else if((aPair == anotherPair) && //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule621.cpp:16:15  [MISRA-6-2-1]  Assignment operator used in a sub-expression [MISRA-6-2-1]
+    | if ((x = y) == 0)            //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule645.cpp:12:5  [MISRA-6-4-5]  Non-empty switch-clause does not terminate with an unconditional break or throw statement [MISRA-6-4-5]
+    | switch (x) { //Noncompliant error shows here
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule651.cpp:20:2  [MISRA-6-5-1]  For loop shall contain a single loop-counter which shall not have floating type [MISRA-6-5-1]
+    | for (int i = 0; i >= x; i = x++)   // Non-compliant
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule651.cpp:30:2  [MISRA-6-5-1]  For loop shall contain a single loop-counter which shall not have floating type [MISRA-6-5-1]
+    | for (float x = 0.1f; x <= 1.0f; x += 0.1f) {   //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule7\Rule711.cpp:12:29  [MISRA-7-1-1]  Parameter 'str' is not modified and shall be const qualified [MISRA-7-1-1]
+    | char getNthChar(const char* str, int N){//Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule7\Rule731.cpp:8:6  [MISRA-7-3-1]  Function 'foo' is declared in the global namespace [MISRA-7-3-1]
+    | void foo(int32_t);                //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule7\Rule731.cpp:9:9  [MISRA-7-3-1]  Variable 'var1' is declared in the global namespace [MISRA-7-3-1]
+    | int32_t var1;                      //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule7\Rule731.cpp:27:14  [MISRA-7-3-1]  Function 'foo3' is declared in the global namespace [MISRA-7-3-1]
+    | extern void foo3();             //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule9\Rule931.cpp:15:7  [MISRA-9-3-1]  Const member function 'getR' returns a non-const pointer or reference to class data [MISRA-9-3-1]
+    | int* getR() const{ //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule9\Rule933.cpp:19:10  [MISRA-9-3-3]  Member function 'foo' can be declared const [MISRA-9-3-3]
+    | int16_t foo ( ) // Noncompliant 
+C:\Users\HanLo\Projects\misra\tests\Rule9\Rule933.cpp:23:10  [MISRA-9-3-3]  Member function 'foo2' can be declared const [MISRA-9-3-3]
+    | int16_t foo2 ( ) // Noncompliant 
+C:\Users\HanLo\Projects\misra\tests\Rule9\Rule933.cpp:28:10  [MISRA-9-3-3]  Member function 'foo3' can be declared static [MISRA-9-3-3]
+    | int16_t foo3 ( ) // Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule9\Rule933.cpp:36:11  [MISRA-9-3-3]  Member function 'getref' can be declared const [MISRA-9-3-3]
+    | int16_t& getref()//Noncompliant 
+C:\Users\HanLo\Projects\misra\tests\Rule9\Rule951.cpp:8:7  [MISRA-9-5-1]  Union 'Pi' shall not be used [MISRA-9-5-1]
+    | union Pi{ //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\ViolationStorePrecedenceTest.cpp:12:13  [MISRA-5-3-1]  Operand of logical '!' operator does not have type bool [MISRA-5-3-1]
+    | if (!(cond)) {                                                         \
+C:\Users\HanLo\Projects\misra\tests\ViolationStorePrecedenceTest.cpp:100:5  [MISRA-0-1-3]  Variable 'rule01xIds' is declared or defined but never used.
+    | const std::vector<std::string> rule01xIds = {
+C:\Users\HanLo\Projects\misra\tests\ViolationStorePrecedenceTest.cpp:186:5  [MISRA-0-1-3]  Variable 'tempReportPath' is declared or defined but never used.
+    | const std::string tempReportPath = "temp_precedence_test_report.txt";
+C:\Users\HanLo\Projects\misra\tests\ViolationStorePrecedenceTest.cpp:200:16  [MISRA-7-1-1]  Variable 'total' is not modified and shall be const qualified [MISRA-7-1-1]
+    | size_t total = store.finalize(tempReportPath);
+C:\Users\HanLo\Projects\misra\tests\ViolationStorePrecedenceTest.cpp:207:9  [MISRA-0-1-3]  Variable 'reportText' is declared or defined but never used.
+    | std::string reportText = ss.str();
+C:\Users\HanLo\Projects\misra\tests\ViolationStorePrecedenceTest.cpp:220:9  [MISRA-5-3-1]  Operand of logical '!' operator does not have type bool [MISRA-5-3-1]
+    | if (!originalContent.empty()) {
 ------------------------------------------------------------------------
 
 Summary by rule:
-  MISRA-0-1-1         0 violations
-  MISRA-0-1-3         0 violations
-  MISRA-0-1-6         0 violations
-  MISRA-0-1-7         0 violations
-  MISRA-0-1-8         0 violations
-  MISRA-0-1-9         0 violations
-  MISRA-2-10-1        0 violations
-  MISRA-2-10-2        0 violations
-  MISRA-2-10-3        0 violations
-  MISRA-2-10-4        0 violations
-  MISRA-2-10-6        0 violations
-  MISRA-3-1-1         0 violations
-  MISRA-3-2-2         0 violations
-  MISRA-3-2-3         0 violations
-  MISRA-3-9-1         0 violations
-  MISRA-5-0-4         0 violations
-  MISRA-5-0-6         0 violations
-  MISRA-5-0-8         0 violations
-  MISRA-5-2-4         0 violations
-  MISRA-5-3-1         0 violations
-  MISRA-6-2-1         0 violations
-  MISRA-6-4-5         0 violations
-  MISRA-6-5-1         0 violations
-  MISRA-6-6-5         2 violations
+  MISRA-0-1-1         2 violations
+  MISRA-0-1-3         5 violations
+  MISRA-0-1-6         1 violation
+  MISRA-0-1-7         2 violations
+  MISRA-0-1-8         3 violations
+  MISRA-0-1-9         1 violation
+  MISRA-15-3-5        3 violations
+  MISRA-15-3-6        2 violations
+  MISRA-15-3-7        1 violation
+  MISRA-15-5-1        1 violation
+  MISRA-16-0-1        1 violation
+  MISRA-16-0-6        1 violation
+  MISRA-16-2-1        1 violation
+  MISRA-2-10-1        6 violations
+  MISRA-2-10-2        2 violations
+  MISRA-2-10-3        1 violation
+  MISRA-2-10-4        1 violation
+  MISRA-2-10-6        1 violation
+  MISRA-3-1-1         4 violations
+  MISRA-3-2-2         1 violation
+  MISRA-3-2-3         3 violations
+  MISRA-3-9-1         1 violation
+  MISRA-5-0-4         2 violations
+  MISRA-5-0-6         1 violation
+  MISRA-5-0-8         1 violation
+  MISRA-5-2-4         4 violations
+  MISRA-5-3-1         3 violations
+  MISRA-6-2-1         1 violation
+  MISRA-6-4-5         1 violation
+  MISRA-6-5-1         2 violations
+  MISRA-6-6-5         0 violations
+  MISRA-7-1-1         2 violations
+  MISRA-7-3-1         3 violations
+  MISRA-9-3-1         1 violation
+  MISRA-9-3-3         4 violations
+  MISRA-9-5-1         1 violation
 
-  Total: 2 violations
+  Total: 70 violations
 ================================================================

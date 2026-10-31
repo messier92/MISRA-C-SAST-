@@ -1,10 +1,10 @@
-Start testing: Oct 31 00:54 Malay Peninsula Standard Time
+Start testing: Oct 31 09:30 Malay Peninsula Standard Time
 ----------------------------------------------------------
 1/1 Testing: ViolationStorePrecedenceTest
 1/1 Test: ViolationStorePrecedenceTest
 Command: "C:/Users/HanLo/Projects/misra/build/Release/Release/violation_store_test.exe"
 Directory: C:/Users/HanLo/Projects/misra/build
-"ViolationStorePrecedenceTest" start time: Oct 31 00:54 Malay Peninsula Standard Time
+"ViolationStorePrecedenceTest" start time: Oct 31 09:30 Malay Peninsula Standard Time
 Output:
 ----------------------------------------------------------
 ================================================================
@@ -31,11 +31,11 @@ Summary by rule:
 Report written to: temp_precedence_test_report.txt
 All ViolationStore precedence tests passed successfully.
 <end of output>
-Test time =   0.07 sec
+Test time =   0.05 sec
 ----------------------------------------------------------
 Test Passed.
-"ViolationStorePrecedenceTest" end time: Oct 31 00:54 Malay Peninsula Standard Time
+"ViolationStorePrecedenceTest" end time: Oct 31 09:30 Malay Peninsula Standard Time
 "ViolationStorePrecedenceTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Oct 31 00:54 Malay Peninsula Standard Time
+End testing: Oct 31 09:30 Malay Peninsula Standard Time

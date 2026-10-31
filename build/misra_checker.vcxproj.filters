@@ -106,6 +106,27 @@
     <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule9\Rule951.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule15\Rule1535.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule15\Rule1536.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule15\Rule1537.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule15\Rule1551.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule16\Rule1601.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule16\Rule1606.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HanLo\Projects\misra\src\rules\Rule16\Rule1621.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\HanLo\Projects\misra\CMakeLists.txt" />

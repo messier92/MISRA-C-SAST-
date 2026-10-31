@@ -1,0 +1,101 @@
+## Implementation Report: `Rule15` Static Analysis Rules
+
+### 1. Rules Implemented
+
+- **MISRA-15-3-5 — Class Type Exceptions Shall Be Caught by Reference ([`Rule1535`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1535.cpp)):**
+  - Matches `CXXCatchStmt` AST nodes (`cxxCatchStmt()`) and inspects `catchStmt->getCaughtType()`, ignoring `catch (...)` ellipsis handlers where `getCaughtType().isNull()`.
+  - Resolves typedefs and type aliases via `caughtType.getCanonicalType()` and handles both named and unnamed catch parameters (`catchStmt->getCatchLoc()`).
+  - Treats reference types (`canonType->isReferenceType()`, covering both `T&` and `const T&`) and non-class types (primitives, pointers, enums) as compliant, and flags handlers where the canonical caught type is a class/struct/union by value (`!canonType->isReferenceType() && canonType->isRecordType()`).
+
+- **MISRA-15-3-6 — Exception Handlers Ordered from Most-Derived to Base Class ([`Rule1536`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1536.cpp)):**
+  - Matches `CXXTryStmt` AST nodes (`cxxTryStmt()`), covering both regular `try-catch` statements and function-try-blocks with two or more handlers (`tryStmt->getNumHandlers() >= 2`).
+  - Extracts the canonical `CXXRecordDecl` definition (`getCaughtClassDecl`) for each handler's caught type after unwrapping reference (`T&`, `const T&`) and pointer qualifiers.
+  - Compares each handler `i` against all preceding handlers `j < i` within the same `CXXTryStmt` using Clang's class inheritance hierarchy (`currClass->isDerivedFrom(prevClass)` or identical canonical class declarations), flagging any derived-class handler that follows a direct or indirect base-class handler at most once per offending handler.
+
+- **MISRA-15-3-7 — Ellipsis (`catch-all`) Handler Shall Occur Last ([`Rule1537`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1537.cpp)):**
+  - Inspects `CXXTryStmt` AST nodes (`cxxTryStmt()`) and also performs a recursive-descent token-stream scan (`TryCatchTokenScanner` via `clang::Lexer`) across project files in the translation unit.
+  - Because C++ compilers (including Clang's frontend parser) reject `catch` clauses that follow `catch (...)` with `error: catch-all handler must come last` and omit the trailing handler from the `CXXTryStmt` AST node, `TryCatchTokenScanner` parses balanced `try { ... } catch (...) { ... }` blocks and nested `try-catch` scopes independently and flags any handler appearing after `catch (...)` within the same `try-catch` statement or function-try-block.
+
+- **MISRA-15-5-1 — Class Destructors Shall Not Exit with an Exception ([`Rule1551`](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1551.cpp)):**
+  - Matches `CXXDestructorDecl` definitions (`cxxDestructorDecl(isDefinition())`, excluding implicit destructors and uninstantiated templates) and traverses the destructor body with `DestructorThrowVisitor`.
+  - Flags explicit `CXXThrowExpr` statements (both throwing new exceptions and rethrowing via `throw;`) occurring directly in the destructor's execution scope.
+  - Enforces all specified exclusions and intentional checker limitations:
+    1. Does not perform interprocedural analysis on functions called by the destructor.
+    2. Treats the presence of any `catch` statement on a `try` block (`tryStmt->getNumHandlers() > 0`) as sufficient indication that exceptions in that `try` block are caught (`TraverseCXXTryStmt` skips `try-catch` subtrees).
+    3. Does not flag `throw` statements inside `catch` blocks (`TraverseCXXCatchStmt` skips `catch` subtrees).
+    4. Excludes `throw` statements inside nested `LambdaExpr`, local `CXXRecordDecl`, or nested `FunctionDecl` scopes.
+
+---
+
+### 2. Files Changed
+
+| File | Purpose |
+| :--- | :--- |
+| [Rule1535.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1535.h) / [Rule1535.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1535.cpp) | Implemented Rule 15-3-5 checker flagging class-type exceptions caught by value. |
+| [Rule1536.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1536.h) / [Rule1536.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1536.cpp) | Implemented Rule 15-3-6 checker verifying derived-to-base catch handler ordering. |
+| [Rule1537.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1537.h) / [Rule1537.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1537.cpp) | Implemented Rule 15-3-7 checker verifying that `catch (...)` appears last in every `try-catch` statement and function-try-block. |
+| [Rule1551.h](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1551.h) / [Rule1551.cpp](file:///c:/Users/HanLo/Projects/misra/src/rules/Rule15/Rule1551.cpp) | Implemented Rule 15-5-1 checker flagging uncaught `throw` statements in class destructors. |
+| [main.cpp](file:///c:/Users/HanLo/Projects/misra/src/main.cpp) | Included and registered `Rule1535`, `Rule1536`, `Rule1537`, and `Rule1551` in `createRules()`. |
+| [CMakeLists.txt](file:///c:/Users/HanLo/Projects/misra/CMakeLists.txt) | Added `Rule1535.cpp`, `Rule1536.cpp`, `Rule1537.cpp`, and `Rule1551.cpp` to `MISRA_SOURCES` and `src/rules/Rule15` to `target_include_directories`. |
+
+---
+
+### 3. Tests Executed
+
+```powershell
+# Build project in Release configuration
+cmake --build build --config Release
+
+# Run complete Rule15 test suite
+.\build\Release\Release\misra_checker.exe tests\Rule15 -- -std=c++17
+
+# Run individual Rule15 test fixtures
+.\build\Release\Release\misra_checker.exe tests\Rule15\Rule1535.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule15\Rule1536.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule15\Rule1537.cpp -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule15\Rule1551.cpp -- -std=c++17
+
+# Run Rule9, Rule7, Rule6, Rule5, Rule3, Rule2, and Rule0 regression test suites and CTest unit tests
+.\build\Release\Release\misra_checker.exe tests\Rule9 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule7 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule6 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule5 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule3 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule2 -- -std=c++17
+.\build\Release\Release\misra_checker.exe tests\Rule0 -- -std=c++17
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+### 4. Test Results
+
+- **Passed (12 / 12 test suites):**
+  - [Rule1535.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule15/Rule1535.cpp): **PASS** — 3 `MISRA-15-3-5` violations at line 34 (`catch (baseException e)`), line 37 (`catch (derivedException e)`), and line 40 (`catch (exampleException e)`), 0 false positives (lines 42, 45, 48, and 51 catching by reference and `const` reference are unflagged).
+  - [Rule1536.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule15/Rule1536.cpp): **PASS** — 2 `MISRA-15-3-6` violations at line 25 (`catch ( NotANumber &nan ) // Noncompliant`) and line 30 (`catch (DivideByZero &dbz)//Noncompliant`), 0 false positives (`catch ( MathError &e )` at line 21 is unflagged).
+  - [Rule1537.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule15/Rule1537.cpp): **PASS** — 1 `MISRA-15-3-7` violation at line 28 (`} catch(exception& e2) { //Noncompliant`), 0 false positives (`catch(exception& e1)` at line 20 and `catch(...)` at line 24 are unflagged).
+  - [Rule1551.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule15/Rule1551.cpp): **PASS** — 1 `MISRA-15-5-1` violation at line 17 (`throw std::logic_error("Error"); //Noncompliant` inside `~myClass()`), 0 false positives.
+  - `tests/Rule9` Regression Suite: **PASS** — All 6 expected `Rule9` violations detected, 0 false positives.
+  - `tests/Rule7` Regression Suite: **PASS** — All 4 expected `Rule7` violations detected, 0 false positives.
+  - `tests/Rule6` Regression Suite: **PASS** — All 4 expected `Rule6` violations detected, 0 false positives.
+  - `tests/Rule5` Regression Suite: **PASS** — All 9 expected `Rule5` violations detected, 0 false positives.
+  - `tests/Rule3` Regression Suite: **PASS** — All 9 expected `Rule3` violations detected, 0 false positives.
+  - `tests/Rule2` Regression Suite: **PASS** — All 11 expected `Rule2` violations detected, 0 false positives.
+  - `tests/Rule0` Regression Suite: **PASS** — All 11 expected `Rule0` violations detected, 0 false positives.
+  - `ViolationStorePrecedenceTest` (`ctest`): **PASS** — Precedence resolution and `Rule 0-1-x` over `Rule 6-6-5` exception verified.
+- **Failed:** 0
+- **Blocked:** 0
+
+---
+
+### 5. Known Limitations
+
+- **Intentional Rule 15-5-1 Specification Exclusions:** By explicit specification, `Rule1551` does not perform interprocedural exception analysis on functions called from a destructor, treats any `try-catch` block inside a destructor as catching exceptions thrown within its `try` block regardless of caught types, and does not flag `throw` statements inside `catch` blocks or nested callable scopes (`LambdaExpr`, local classes).
+- **Frontend Parse Error in [Rule1537.cpp](file:///c:/Users/HanLo/Projects/misra/tests/Rule15/Rule1537.cpp):** Because `catch (...)` followed by another `catch` handler is ill-formed in C++ (and `Rule1537.cpp` also contains an extra closing brace on line 33), Clang emits frontend diagnostics during parsing; `Rule1537` uses `TryCatchTokenScanner` via `clang::Lexer` so the noncompliant handler on line 28 is reliably detected without modifying the test fixture.
+
+---
+
+### 6. Outstanding Issues
+
+- None. All four `Rule15` checkers (`15-3-5`, `15-3-6`, `15-3-7`, and `15-5-1`) are implemented, integrated, built, and verified against all `tests/Rule15`, `tests/Rule9`, `tests/Rule7`, `tests/Rule6`, `tests/Rule5`, `tests/Rule3`, `tests/Rule2`, and `tests/Rule0` suites. No new external dependencies were introduced.
+
