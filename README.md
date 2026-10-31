@@ -106,6 +106,83 @@ cmake -B C:\path\to\my_cpp_repo\build -S C:\path\to\my_cpp_repo -DCMAKE_EXPORT_C
 
 ---
 
+### CI/CD Pipeline Integration (`run_misra_ci.ps1` & GitLab CI)
+
+The repository includes `run_misra_ci.ps1`, a PowerShell wrapper designed for CI/CD pipelines (such as `.gitlab-ci.yml`) that scans a target directory while supporting flexible file, wildcard, and directory exclusions.
+
+#### How Exclusion Filtering Works
+1. **Pre-Scan Translation Unit Filtering:** Discovers all `.cpp`, `.c`, `.cc`, and `.cxx` files under `-ScanDir` and excludes any source files matching `-Exclude` before invoking `misra_checker.exe`.
+2. **Post-Scan Report Filtering:** If a non-excluded `.cpp` file `#include`s an excluded header (e.g., `test.h`, `*.h`, or headers inside `\src\test\exclude`), the script filters those excluded violations out of the final report, recalculates per-rule and total counts, and sets the process exit code (`0` = pass, `1` = violations remain).
+
+#### Script Parameters
+
+| Parameter | Required | Default | Description |
+| :--- | :---: | :--- | :--- |
+| `-ScanDir` | Yes | — | Full or relative path to the C++ directory to scan. |
+| `-Exclude` | No | `@()` | Comma-separated string or array of exclusion patterns (`"test.h"`, `"*.h"`, `"\src\test\exclude"`). |
+| `-CheckerExe` | No | `build\Release\Release\misra_checker.exe` | Path to the `misra_checker.exe` binary. |
+| `-OutputFile` | No | `misra_output.txt` | Path where the final filtered report is written. |
+| `-CompileCommandsDir` | No | `""` | Optional directory containing `compile_commands.json` (passed as `-p`). |
+| `-ExtraCompilerArgs` | No | `@("-std=c++17")` | Compiler flags forwarded after `--` when no compilation database is used. |
+
+#### Supported `-Exclude` Formats
+
+| Pattern Example | Behavior |
+| :--- | :--- |
+| `"test.h"` | Excludes any file named `test.h` anywhere under the scan directory. |
+| `"*.h"` or `"*.hpp"` | Excludes all files matching the wildcard pattern. |
+| `"\src\test\exclude"` or `"src/test/exclude"` | Excludes all files inside the `\src\test\exclude` directory (and its subdirectories). |
+| `"src\legacy\old.cpp"` | Excludes files matching that relative path suffix. |
+
+#### PowerShell Command-Line Examples
+
+```powershell
+# 1. Scan a directory with no exclusions
+powershell -ExecutionPolicy Bypass -File .\run_misra_ci.ps1 `
+    -ScanDir "C:\repos\my_project"
+
+# 2. Exclude a specific file (test.h), all headers (*.h), or a folder (\src\test\exclude)
+powershell -ExecutionPolicy Bypass -File .\run_misra_ci.ps1 `
+    -ScanDir "C:\repos\my_project" `
+    -Exclude "test.h", "*.h", "\src\test\exclude"
+
+# 3. Pass exclusions as a single comma-separated string (convenient for GitLab CI variables)
+powershell -ExecutionPolicy Bypass -File .\run_misra_ci.ps1 `
+    -ScanDir "C:\repos\my_project" `
+    -Exclude "test.h,*.h,\src\test\exclude"
+```
+
+#### `.gitlab-ci.yml` Integration Example
+
+```yaml
+stages:
+  - static_analysis
+
+misra_cpp_check:
+  stage: static_analysis
+  tags:
+    - windows
+  variables:
+    MISRA_SCAN_DIR: "$CI_PROJECT_DIR"
+    # Comma-separated exclusions: specific file, wildcard, or folder path
+    MISRA_EXCLUDES: "test.h,*.h,\\src\\test\\exclude"
+    MISRA_CHECKER_EXE: "C:\\tools\\misra\\misra_checker.exe"
+    MISRA_REPORT_FILE: "$CI_PROJECT_DIR\\misra_output.txt"
+  script:
+    - powershell -NoProfile -ExecutionPolicy Bypass -File .\run_misra_ci.ps1
+        -ScanDir "$env:MISRA_SCAN_DIR"
+        -Exclude "$env:MISRA_EXCLUDES"
+        -CheckerExe "$env:MISRA_CHECKER_EXE"
+        -OutputFile "$env:MISRA_REPORT_FILE"
+  artifacts:
+    when: always
+    paths:
+      - misra_output.txt
+    expire_in: 30 days
+```
+
+---
+
 ## 4. Architecture & Data Flow
 
 ```text
@@ -138,6 +215,7 @@ argv (directory / files / -p compile_commands.json)
 ## 5. Source Layout
 
 ```text
+run_misra_ci.ps1                      # CI/CD PowerShell wrapper with file/wildcard/folder exclusions
 src/
 ├── main.cpp                          # CLI entry point, source discovery, rule registration
 ├── MisraChecker.h / .cpp             # ASTFrontendAction, ASTConsumer, PPCallbacks wiring
