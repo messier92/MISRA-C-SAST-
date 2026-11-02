@@ -44,7 +44,9 @@ bool isRule665(const std::string& ruleId) {
 // ── Violation ordering ─────────────────────────────────────────
 
 bool Violation::operator<(const Violation& rhs) const {
-    if (file != rhs.file) return file < rhs.file;
+    std::string normL = ProjectFileFilter::normalisePath(file);
+    std::string normR = ProjectFileFilter::normalisePath(rhs.file);
+    if (normL != normR) return normL < normR;
     if (line != rhs.line) return line < rhs.line;
     if (col  != rhs.col)  return col  < rhs.col;
     return ruleId < rhs.ruleId;
@@ -56,20 +58,28 @@ ViolationStore::ViolationStore(const std::string& projectRoot)
     : filter_(projectRoot) {}
 
 void ViolationStore::addViolation(const Violation& v) {
+    Violation canonV = v;
+    canonV.file = ProjectFileFilter::canonicalisePath(v.file);
+
     // Skip files outside the project root.
-    if (!filter_.isProjectFile(v.file)) {
+    if (!filter_.isProjectFile(canonV.file)) {
         return;
     }
-    // Deduplicate by (file, line, col, ruleId).
-    for (const auto& existing : violations_) {
-        if (existing.file   == v.file   &&
-            existing.line   == v.line   &&
-            existing.col    == v.col    &&
-            existing.ruleId == v.ruleId) {
+
+    std::string normFile = ProjectFileFilter::normalisePath(canonV.file);
+    // Deduplicate by canonical (file, line, ruleId), collapsing repeated
+    // reports from headers included under different path spellings across TUs.
+    for (auto& existing : violations_) {
+        if (existing.line   == canonV.line   &&
+            existing.ruleId == canonV.ruleId &&
+            ProjectFileFilter::normalisePath(existing.file) == normFile) {
+            if (canonV < existing) {
+                existing = std::move(canonV);
+            }
             return;
         }
     }
-    violations_.push_back(v);
+    violations_.push_back(std::move(canonV));
 }
 
 void ViolationStore::registerRule(const std::string& ruleId) {
@@ -77,7 +87,15 @@ void ViolationStore::registerRule(const std::string& ruleId) {
 }
 
 void ViolationStore::setScannedFiles(const std::vector<std::string>& files) {
-    scannedFiles_ = files;
+    scannedFiles_.clear();
+    std::set<std::string> seen;
+    for (const auto& f : files) {
+        std::string canon = ProjectFileFilter::canonicalisePath(f);
+        std::string norm  = ProjectFileFilter::normalisePath(canon);
+        if (!canon.empty() && seen.insert(norm).second) {
+            scannedFiles_.push_back(std::move(canon));
+        }
+    }
 }
 
 void ViolationStore::setReportTag(const std::string& tag) {

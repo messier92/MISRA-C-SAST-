@@ -1,6 +1,8 @@
 #include "Rule.h"
+#include "ProjectFileFilter.h"
 
 #include "clang/AST/Stmt.h"
+#include "clang/Basic/FileManager.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/Lexer.h"
 
@@ -38,6 +40,27 @@ const clang::Stmt* ParentBuilder::getParent(const clang::Stmt* child) const {
 Rule::Rule(const std::string& ruleId, const std::string& description)
     : ruleId_(ruleId), description_(description) {}
 
+std::string Rule::getCanonicalFilePath(clang::SourceLocation loc,
+                                       const clang::SourceManager& sm) {
+    clang::SourceLocation spellingLoc = sm.getSpellingLoc(loc);
+    if (spellingLoc.isInvalid()) return "";
+
+    clang::FileID fid = sm.getFileID(spellingLoc);
+    if (fid.isValid()) {
+        if (auto fe = sm.getFileEntryRefForID(fid)) {
+            llvm::StringRef canonName =
+                sm.getFileManager().getCanonicalName(*fe);
+            if (!canonName.empty()) {
+                return ProjectFileFilter::canonicalisePath(canonName.str());
+            }
+        }
+    }
+
+    clang::PresumedLoc presumed = sm.getPresumedLoc(spellingLoc);
+    if (presumed.isInvalid()) return "";
+    return ProjectFileFilter::canonicalisePath(presumed.getFilename());
+}
+
 void Rule::report(clang::SourceLocation loc, const std::string& message) {
     if (!store_ || !ctx_) return;
 
@@ -49,8 +72,11 @@ void Rule::report(clang::SourceLocation loc, const std::string& message) {
     clang::PresumedLoc presumed = sm.getPresumedLoc(spellingLoc);
     if (presumed.isInvalid()) return;
 
+    std::string canonFile = getCanonicalFilePath(spellingLoc, sm);
+    if (canonFile.empty()) return;
+
     Violation v;
-    v.file       = presumed.getFilename();
+    v.file       = std::move(canonFile);
     v.line       = presumed.getLine();
     v.col        = presumed.getColumn();
     v.ruleId     = ruleId_;

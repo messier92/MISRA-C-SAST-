@@ -137,8 +137,9 @@ private:
         }
 
         if (!isStandaloneAssignment(expr, parents_)) {
-            auto key = std::make_pair(std::string(presumed.getFilename()),
-                                      presumed.getLine());
+            std::string normFile = ProjectFileFilter::normalisePath(
+                Rule::getCanonicalFilePath(spellingLoc, sm));
+            auto key = std::make_pair(normFile, presumed.getLine());
             if (reportedLines_.insert(key).second) {
                 reportFn_(loc,
                           "Assignment operator used in a sub-expression [MISRA-6-2-1]");

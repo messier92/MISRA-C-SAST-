@@ -226,6 +226,37 @@ void testReportFormatPreserved() {
     }
 }
 
+/// 6. Test canonicalisation of duplicate #include path spellings and collapsing
+///    noisy included headers to one entry per line:file automatically.
+void testDuplicatePathSpellingsAndHeaderCanonicalisation() {
+    ViolationStore store("C:\\repo");
+
+    // Same physical header arrived via multiple #include path spellings across TUs:
+    store.addViolation(makeViolation("C:\\repo\\src\\modA\\..\\..\\include\\generated_hdr.h",
+                                     100, 8, "MISRA-0-1-3", "Unused field"));
+    store.addViolation(makeViolation("C:/repo/src/modB/sub/../../../include/generated_hdr.h",
+                                     100, 8, "MISRA-0-1-3", "Unused field"));
+    store.addViolation(makeViolation("c:\\repo\\include\\./generated_hdr.h",
+                                     100, 12, "MISRA-0-1-3", "Unused field"));
+    // Another per-TU rule (MISRA-2-10-1) firing on the exact same line in the header
+    // under yet another path spelling:
+    store.addViolation(makeViolation("C:\\repo\\src\\..\\include\\generated_hdr.h",
+                                     100, 4, "MISRA-2-10-1", "Typographically ambiguous"));
+
+    // Before applyPrecedence(), all MISRA-0-1-3 duplicates on line 100 collapsed
+    // into 1 entry and MISRA-2-10-1 is 1 entry -> 2 entries total.
+    REQUIRE(store.getViolations().size() == 2);
+
+    store.applyPrecedence();
+
+    // After applyPrecedence(), collapsed to a single entry for (file, line),
+    // with Rule 2-10-1 winning over Rule 0-1-3 and canonical path preserved.
+    REQUIRE(store.getViolations().size() == 1);
+    REQUIRE(store.getViolations()[0].file == "C:\\repo\\include\\generated_hdr.h");
+    REQUIRE(store.getViolations()[0].line == 100);
+    REQUIRE(store.getViolations()[0].ruleId == "MISRA-2-10-1");
+}
+
 } // namespace
 
 int main() {
@@ -234,6 +265,7 @@ int main() {
     testRule01xExceptionOverRule665();
     testSingleViolationLinesUnaffected();
     testReportFormatPreserved();
+    testDuplicatePathSpellingsAndHeaderCanonicalisation();
 
     std::cout << "All ViolationStore precedence tests passed successfully.\n";
     return 0;

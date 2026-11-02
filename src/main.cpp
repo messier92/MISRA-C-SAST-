@@ -182,14 +182,47 @@ int main(int argc, const char** argv) {
     // If a single argument is a directory, expand it.
     if (sources.size() == 1 && fs::is_directory(sources[0])) {
         std::string dir = sources[0];
-        inferredRoot = fs::absolute(dir).lexically_normal().string();
+        inferredRoot = misra::ProjectFileFilter::canonicalisePath(dir);
         sources = discoverSources(dir);
         if (sources.empty()) {
             std::cerr << "No C/C++ sources found under " << dir << "\n";
             return 1;
         }
     } else if (!sources.empty()) {
-        inferredRoot = fs::absolute(sources[0]).lexically_normal().parent_path().string();
+        fs::path common = fs::path(
+            misra::ProjectFileFilter::canonicalisePath(sources[0])).parent_path();
+        for (size_t i = 1; i < sources.size(); ++i) {
+            fs::path p = fs::path(
+                misra::ProjectFileFilter::canonicalisePath(sources[i])).parent_path();
+            fs::path nextCommon;
+            auto itA = common.begin();
+            auto itB = p.begin();
+            while (itA != common.end() && itB != p.end() &&
+                   misra::ProjectFileFilter::normalisePath(itA->string()) ==
+                       misra::ProjectFileFilter::normalisePath(itB->string())) {
+                nextCommon /= *itA;
+                ++itA;
+                ++itB;
+            }
+            if (!nextCommon.empty()) {
+                common = nextCommon;
+            }
+        }
+        inferredRoot = common.string();
+    }
+
+    // Canonicalize and deduplicate input translation unit paths.
+    {
+        std::vector<std::string> uniqueSources;
+        std::set<std::string> seenNorm;
+        for (const auto& s : sources) {
+            std::string canon = misra::ProjectFileFilter::canonicalisePath(s);
+            std::string norm  = misra::ProjectFileFilter::normalisePath(canon);
+            if (!canon.empty() && seenNorm.insert(norm).second) {
+                uniqueSources.push_back(std::move(canon));
+            }
+        }
+        sources = std::move(uniqueSources);
     }
 
     std::cout << "================================================================\n";

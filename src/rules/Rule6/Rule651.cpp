@@ -304,9 +304,12 @@ public:
 private:
     void emitOncePerLine(SourceLocation loc, const std::string& msg) {
         const SourceManager& sm = ctx_.getSourceManager();
-        PresumedLoc p = sm.getPresumedLoc(sm.getSpellingLoc(loc));
+        SourceLocation spellLoc = sm.getSpellingLoc(loc);
+        PresumedLoc p = sm.getPresumedLoc(spellLoc);
         if (p.isInvalid()) return;
-        auto key = std::make_pair(std::string(p.getFilename()), p.getLine());
+        std::string normFile = ProjectFileFilter::normalisePath(
+            Rule::getCanonicalFilePath(spellLoc, sm));
+        auto key = std::make_pair(normFile, p.getLine());
         if (reportedLines_.insert(key).second) {
             reportFn_(loc, msg);
         }

@@ -49,12 +49,12 @@ public:
         clang::PresumedLoc presumed = sm.getPresumedLoc(spellingLoc);
         if (presumed.isInvalid()) return true;
 
-        std::string filename = presumed.getFilename();
+        std::string filename = Rule::getCanonicalFilePath(spellingLoc, sm);
         if (store_ && !store_->getFilter().isProjectFile(filename)) {
             return true;
         }
 
-        std::string normFile = normalizePath(filename);
+        std::string normFile = ProjectFileFilter::normalisePath(filename);
         std::string qname = vd->getQualifiedNameAsString();
         if (qname.empty()) return true;
 

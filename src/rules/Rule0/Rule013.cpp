@@ -46,7 +46,8 @@ bool hasExplicitValueInitForRule016(const VarDecl* vd) {
 
 class CallAndDeclCollector : public RecursiveASTVisitor<CallAndDeclCollector> {
 public:
-    explicit CallAndDeclCollector(const SourceManager& sm) : sm_(sm) {}
+    CallAndDeclCollector(const SourceManager& sm, const ViolationStore* store)
+        : sm_(sm), store_(store) {}
 
     bool VisitCallExpr(CallExpr* call) {
         if (const FunctionDecl* callee = call->getDirectCallee()) {
@@ -79,7 +80,12 @@ public:
     bool VisitVarDecl(VarDecl* vd) {
         if (!vd || isa<ParmVarDecl>(vd) || isa<ImplicitParamDecl>(vd)) return true;
         if (vd->isImplicit() || vd->isExceptionVariable()) return true;
-        if (vd->getBeginLoc().isInvalid() || sm_.isInSystemHeader(vd->getBeginLoc())) {
+        SourceLocation spellLoc = sm_.getSpellingLoc(vd->getBeginLoc());
+        if (spellLoc.isInvalid() || sm_.isInSystemHeader(spellLoc)) {
+            return true;
+        }
+        if (store_ && !store_->getFilter().isProjectFile(
+                          Rule::getCanonicalFilePath(spellLoc, sm_))) {
             return true;
         }
         if (vd->getDescribedVarTemplate() ||
@@ -98,7 +104,12 @@ public:
 
     bool VisitFieldDecl(FieldDecl* fd) {
         if (!fd || fd->isImplicit()) return true;
-        if (fd->getBeginLoc().isInvalid() || sm_.isInSystemHeader(fd->getBeginLoc())) {
+        SourceLocation spellLoc = sm_.getSpellingLoc(fd->getBeginLoc());
+        if (spellLoc.isInvalid() || sm_.isInSystemHeader(spellLoc)) {
+            return true;
+        }
+        if (store_ && !store_->getFilter().isProjectFile(
+                          Rule::getCanonicalFilePath(spellLoc, sm_))) {
             return true;
         }
         // Unnamed bit-fields (e.g. `unsigned char : 1;`) are compliant padding.
@@ -115,6 +126,7 @@ public:
     }
 
     const SourceManager& sm_;
+    const ViolationStore* store_ = nullptr;
     std::unordered_set<const FunctionDecl*> calledFunctions_;
     std::vector<const VarDecl*> varDecls_;
     std::vector<const FieldDecl*> fieldDecls_;
@@ -175,6 +187,9 @@ public:
         if (const auto* fd = dyn_cast<FieldDecl>(me->getMemberDecl())) {
             if (isCurrentFunctionActiveForField(fd)) {
                 usedFields_.insert(fd->getCanonicalDecl());
+                if (const RecordDecl* parent = fd->getParent()) {
+                    recordsWithUsedFields_.insert(parent->getCanonicalDecl());
+                }
             }
         }
         return true;
@@ -213,6 +228,7 @@ public:
     const FunctionDecl* currentFunc_ = nullptr;
     std::unordered_set<const VarDecl*> referencedVars_;
     std::unordered_set<const FieldDecl*> usedFields_;
+    std::unordered_set<const TagDecl*> recordsWithUsedFields_;
 };
 
 } // namespace
@@ -233,7 +249,7 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
 
     const SourceManager& sm = *result.SourceManager;
 
-    CallAndDeclCollector collector(sm);
+    CallAndDeclCollector collector(sm, store_);
     collector.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
 
     UsageVisitor usage(sm, collector.calledFunctions_, collector.hasMain_);
@@ -247,10 +263,12 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
             if (hasExplicitValueInitForRule016(vd)) {
                 continue;
             }
-            // Non-static file-scope globals in library TUs (without `main`) may
-            // be referenced externally; also skip when shadowed by an inner-scope
-            // variable of the same name (covered by MISRA-2-10-2).
-            if (vd->isFileVarDecl() && !collector.hasMain_) {
+            // Non-static file-scope globals in library TUs (without `main`) or
+            // file-scope constants declared in included headers may be referenced
+            // in other translation units.
+            SourceLocation spellLoc = sm.getSpellingLoc(vd->getBeginLoc());
+            if (vd->isFileVarDecl() &&
+                (!collector.hasMain_ || !sm.isInMainFile(spellLoc))) {
                 continue;
             }
             // Skip declaration-only test stubs where no variables are referenced at all.
@@ -267,7 +285,10 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
         const FieldDecl* canon = fd->getCanonicalDecl();
         if (usage.usedFields_.count(canon) == 0) {
             // Only flag unused fields in records that are actively used in the TU.
-            if (usage.usedFields_.empty()) {
+            const TagDecl* parentRec =
+                fd->getParent() ? fd->getParent()->getCanonicalDecl() : nullptr;
+            if (!parentRec ||
+                usage.recordsWithUsedFields_.count(parentRec) == 0) {
                 continue;
             }
             report(fd->getBeginLoc(),

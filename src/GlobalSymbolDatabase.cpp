@@ -7,11 +7,34 @@ namespace misra {
 // ── Recording ──────────────────────────────────────────────────
 
 void GlobalSymbolDatabase::addDeclaration(const DeclRecord& rec) {
-    declarations_.push_back(rec);
+    DeclRecord canonRec = rec;
+    canonRec.file = ProjectFileFilter::canonicalisePath(rec.file);
+    std::string normFile = ProjectFileFilter::normalisePath(canonRec.file);
+    for (const auto& existing : declarations_) {
+        if (existing.line          == canonRec.line          &&
+            existing.col           == canonRec.col           &&
+            existing.isDefinition  == canonRec.isDefinition  &&
+            existing.qualifiedName == canonRec.qualifiedName &&
+            ProjectFileFilter::normalisePath(existing.file) == normFile) {
+            return;
+        }
+    }
+    declarations_.push_back(std::move(canonRec));
 }
 
 void GlobalSymbolDatabase::addIdentifier(const IdentifierRecord& rec) {
-    identifiers_.push_back(rec);
+    IdentifierRecord canonRec = rec;
+    canonRec.file = ProjectFileFilter::canonicalisePath(rec.file);
+    std::string normFile = ProjectFileFilter::normalisePath(canonRec.file);
+    for (const auto& existing : identifiers_) {
+        if (existing.line  == canonRec.line  &&
+            existing.name  == canonRec.name  &&
+            existing.scope == canonRec.scope &&
+            ProjectFileFilter::normalisePath(existing.file) == normFile) {
+            return;
+        }
+    }
+    identifiers_.push_back(std::move(canonRec));
 }
 
 // ── Evaluation ─────────────────────────────────────────────────

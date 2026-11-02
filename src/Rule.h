@@ -80,6 +80,11 @@ public:
     const std::string& getRuleId()      const { return ruleId_; }
     const std::string& getDescription() const { return description_; }
 
+    /// Resolve a Clang SourceLocation to a single canonical file path on disk,
+    /// collapsing different `#include` relative path spellings to the same file.
+    static std::string getCanonicalFilePath(clang::SourceLocation loc,
+                                            const clang::SourceManager& sm);
+
 protected:
     // ── Helpers available to subclasses ──────────────────────────
 

@@ -17,7 +17,12 @@ public:
     /// Returns true if the given file path is under the project root.
     bool isProjectFile(const std::string& filePath) const;
 
-    /// Normalizes a file path (resolves separators, lowercases on Windows).
+    /// Resolves relative segments (`.`, `..`), symlinks, and slash direction
+    /// to produce a single canonical path string for a physical file on disk.
+    static std::string canonicalisePath(const std::string& path);
+
+    /// Normalizes a file path (canonicalizes, resolves separators to '/',
+    /// lowercases on Windows) for case-insensitive path comparison and keying.
     static std::string normalisePath(const std::string& path);
 
     /// Returns the normalized root path.
