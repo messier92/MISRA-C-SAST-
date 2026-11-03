@@ -20,6 +20,14 @@ void ParentBuilder::build(clang::ASTContext& ctx) {
     TraverseAST(ctx);
 }
 
+void ParentBuilder::buildStmt(clang::Stmt* root) {
+    parentMap_.clear();
+    stack_.clear();
+    if (root) {
+        TraverseStmt(root);
+    }
+}
+
 bool ParentBuilder::VisitStmt(clang::Stmt* s) {
     // Record parent relationship for every direct child.
     for (auto* child : s->children()) {
@@ -61,10 +69,44 @@ std::string Rule::getCanonicalFilePath(clang::SourceLocation loc,
     return ProjectFileFilter::canonicalisePath(presumed.getFilename());
 }
 
+bool Rule::isProjectLocation(clang::SourceLocation loc,
+                             const clang::SourceManager& sm,
+                             const ViolationStore* store) {
+    if (loc.isInvalid()) return false;
+
+    clang::SourceLocation spellingLoc = sm.getSpellingLoc(loc);
+    if (spellingLoc.isInvalid()) return false;
+
+    clang::SourceLocation expansionLoc = sm.getExpansionLoc(loc);
+    if (sm.isInSystemHeader(spellingLoc) ||
+        (expansionLoc.isValid() && sm.isInSystemHeader(expansionLoc)) ||
+        sm.isInSystemMacro(loc) ||
+        sm.isWrittenInBuiltinFile(spellingLoc) ||
+        sm.isWrittenInCommandLineFile(spellingLoc) ||
+        sm.isWrittenInScratchSpace(spellingLoc)) {
+        return false;
+    }
+
+    std::string canonFile = getCanonicalFilePath(spellingLoc, sm);
+    if (canonFile.empty()) return false;
+
+    if (store) {
+        return store->getFilter().isProjectFile(canonFile);
+    }
+    return !ProjectFileFilter::isExcludedExternalOrThirdPartyPath(canonFile);
+}
+
+bool Rule::isProjectLocation(clang::SourceLocation loc) const {
+    if (!ctx_) return false;
+    return isProjectLocation(loc, ctx_->getSourceManager(), store_);
+}
+
 void Rule::report(clang::SourceLocation loc, const std::string& message) {
     if (!store_ || !ctx_) return;
 
     const auto& sm = ctx_->getSourceManager();
+    if (!isProjectLocation(loc, sm, store_)) return;
+
     // Resolve to the spelling location (handles macros).
     clang::SourceLocation spellingLoc = sm.getSpellingLoc(loc);
     if (spellingLoc.isInvalid()) return;
@@ -128,9 +170,10 @@ bool Rule::isReachable(const clang::Stmt* stmt,
                        clang::ASTContext& ctx,
                        ParentBuilder& parentBuilder) {
     const clang::Stmt* cur = stmt;
-    while (cur) {
+    unsigned hops = 0;
+    while (cur && ++hops <= 256) {
         const clang::Stmt* parent = parentBuilder.getParent(cur);
-        if (!parent) break;
+        if (!parent || parent == cur) break;
 
         if (const auto* compound = llvm::dyn_cast<clang::CompoundStmt>(parent)) {
             const clang::Stmt* grandParent = parentBuilder.getParent(compound);

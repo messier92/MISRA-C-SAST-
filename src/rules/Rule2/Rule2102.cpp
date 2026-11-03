@@ -58,14 +58,17 @@ bool isScopedNamedDecl(const clang::NamedDecl* d,
     return true;
 }
 
-class ScopeShadowVisitor : public clang::RecursiveASTVisitor<ScopeShadowVisitor> {
+class ScopeShadowVisitor : public SafeASTVisitor<ScopeShadowVisitor> {
 public:
-    using Base = clang::RecursiveASTVisitor<ScopeShadowVisitor>;
+    using Base = SafeASTVisitor<ScopeShadowVisitor>;
 
     ScopeShadowVisitor(clang::ASTContext& ctx,
                        const ViolationStore* store,
                        std::function<void(clang::SourceLocation, const std::string&)> reportFn)
-        : ctx_(ctx), store_(store), reportFn_(std::move(reportFn)) {}
+        : ctx_(ctx), store_(store), reportFn_(std::move(reportFn)) {
+        // Initialize top-level translation unit scope.
+        scopes_.emplace_back();
+    }
 
     bool TraverseTranslationUnitDecl(clang::TranslationUnitDecl* d) {
         ScopeGuard guard(scopes_);
@@ -227,7 +230,7 @@ void Rule2102::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

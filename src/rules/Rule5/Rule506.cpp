@@ -19,7 +19,8 @@ namespace misra {
 namespace {
 
 const clang::Expr* unwrapImplicitAndParens(const clang::Expr* e) {
-    while (e) {
+    unsigned hops = 0;
+    while (e && ++hops <= 128) {
         const clang::Expr* next = e->IgnoreParenImpCasts();
         if (const auto* ewc = llvm::dyn_cast<clang::ExprWithCleanups>(next)) {
             next = ewc->getSubExpr();
@@ -47,7 +48,8 @@ bool isArithmeticNonBoolType(clang::QualType qt) {
 }
 
 bool isPtrdiffType(clang::QualType qt) {
-    while (!qt.isNull()) {
+    unsigned hops = 0;
+    while (!qt.isNull() && ++hops <= 64) {
         if (const auto* td = qt->getAs<clang::TypedefType>()) {
             llvm::StringRef name = td->getDecl()->getName();
             if (name == "ptrdiff_t") return true;
@@ -66,10 +68,15 @@ bool isSignedIntegralOrPtrdiff(clang::QualType qt) {
     return qt.getCanonicalType()->isSignedIntegerType();
 }
 
-clang::QualType getUnderlyingType(const clang::Expr* expr, clang::ASTContext& ctx) {
+clang::QualType getUnderlyingType(const clang::Expr* expr,
+                                  clang::ASTContext& ctx,
+                                  unsigned depth = 0) {
     if (!expr) return clang::QualType();
     const clang::Expr* e = unwrapImplicitAndParens(expr);
     if (!e) return clang::QualType();
+    if (depth >= 64) {
+        return e->getType().getNonReferenceType().getUnqualifiedType();
+    }
 
     if (llvm::isa<clang::ExplicitCastExpr>(e)) {
         return e->getType().getNonReferenceType().getUnqualifiedType();
@@ -77,17 +84,17 @@ clang::QualType getUnderlyingType(const clang::Expr* expr, clang::ASTContext& ct
 
     if (const auto* uop = llvm::dyn_cast<clang::UnaryOperator>(e)) {
         if (uop->isArithmeticOp() || uop->isIncrementDecrementOp()) {
-            return getUnderlyingType(uop->getSubExpr(), ctx);
+            return getUnderlyingType(uop->getSubExpr(), ctx, depth + 1);
         }
     }
 
     if (const auto* bop = llvm::dyn_cast<clang::BinaryOperator>(e)) {
         if (bop->isAssignmentOp() || bop->isShiftOp()) {
-            return getUnderlyingType(bop->getLHS(), ctx);
+            return getUnderlyingType(bop->getLHS(), ctx, depth + 1);
         }
         if (bop->isAdditiveOp() || bop->isMultiplicativeOp() || bop->isBitwiseOp()) {
-            clang::QualType lt = getUnderlyingType(bop->getLHS(), ctx);
-            clang::QualType rt = getUnderlyingType(bop->getRHS(), ctx);
+            clang::QualType lt = getUnderlyingType(bop->getLHS(), ctx, depth + 1);
+            clang::QualType rt = getUnderlyingType(bop->getRHS(), ctx, depth + 1);
             if (lt.isNull() || rt.isNull()) {
                 return e->getType().getNonReferenceType().getUnqualifiedType();
             }
@@ -109,8 +116,8 @@ clang::QualType getUnderlyingType(const clang::Expr* expr, clang::ASTContext& ct
     }
 
     if (const auto* cond = llvm::dyn_cast<clang::ConditionalOperator>(e)) {
-        clang::QualType tt = getUnderlyingType(cond->getTrueExpr(), ctx);
-        clang::QualType ft = getUnderlyingType(cond->getFalseExpr(), ctx);
+        clang::QualType tt = getUnderlyingType(cond->getTrueExpr(), ctx, depth + 1);
+        clang::QualType ft = getUnderlyingType(cond->getFalseExpr(), ctx, depth + 1);
         if (!tt.isNull() && !ft.isNull()) {
             return (ctx.getTypeSize(tt) >= ctx.getTypeSize(ft)) ? tt : ft;
         }
@@ -134,7 +141,7 @@ bool isProjectLoc(clang::SourceLocation loc,
 }
 
 class NarrowingConversionVisitor
-    : public clang::RecursiveASTVisitor<NarrowingConversionVisitor> {
+    : public SafeASTVisitor<NarrowingConversionVisitor> {
 public:
     NarrowingConversionVisitor(
         clang::ASTContext& ctx,
@@ -255,7 +262,7 @@ void Rule506::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

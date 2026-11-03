@@ -19,8 +19,8 @@ namespace {
 /// Determine whether `expr` designates a non-static data member (FieldDecl /
 /// IndirectFieldDecl) directly stored in `*this` (excluding pointer dereferences
 /// and reference members when checking whether `*this` itself is modified).
-const FieldDecl* getModifiedThisField(const Expr* expr) {
-    if (!expr) return nullptr;
+const FieldDecl* getModifiedThisField(const Expr* expr, unsigned depth = 0) {
+    if (!expr || depth >= 128) return nullptr;
     expr = expr->IgnoreParenImpCasts();
 
     if (const auto* me = llvm::dyn_cast<MemberExpr>(expr)) {
@@ -41,7 +41,7 @@ const FieldDecl* getModifiedThisField(const Expr* expr) {
         // Chained value subobject access `this->sub.field`: only modifies `*this`
         // if `this->sub` is a value member (neither pointer nor reference).
         if (!me->isArrow()) {
-            const FieldDecl* rootField = getModifiedThisField(base);
+            const FieldDecl* rootField = getModifiedThisField(base, depth + 1);
             if (rootField &&
                 !rootField->getType()->isPointerType() &&
                 !rootField->getType()->isReferenceType()) {
@@ -55,7 +55,7 @@ const FieldDecl* getModifiedThisField(const Expr* expr) {
         // `m_arr[i] = ...` modifies `*this` only when `m_arr` is an array member,
         // NOT when `m_ptr[i] = ...` writes through a pointer member.
         const Expr* base = ase->getBase() ? ase->getBase()->IgnoreParenImpCasts() : nullptr;
-        const FieldDecl* fd = getModifiedThisField(base);
+        const FieldDecl* fd = getModifiedThisField(base, depth + 1);
         if (fd && fd->getType()->isArrayType()) {
             return fd;
         }
@@ -76,7 +76,8 @@ bool isThisFieldAccess(const MemberExpr* me) {
     }
 
     const Expr* base = me->getBase();
-    while (base) {
+    unsigned hops = 0;
+    while (base && ++hops <= 128) {
         base = base->IgnoreParenCasts();
         if (llvm::isa<CXXThisExpr>(base)) {
             return true;
@@ -104,7 +105,7 @@ bool isThisFieldAccess(const MemberExpr* me) {
 ///   1. Whether a member function accesses any non-static data member of `this`
 ///      (or calls a non-static member function on `this`).
 ///   2. Whether the member function modifies any non-static data member of `this`.
-class MethodAccessVisitor : public RecursiveASTVisitor<MethodAccessVisitor> {
+class MethodAccessVisitor : public SafeASTVisitor<MethodAccessVisitor> {
 public:
     bool accessesNonStaticData = false;
     bool modifiesNonStaticData = false;

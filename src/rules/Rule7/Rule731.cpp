@@ -76,7 +76,7 @@ bool isGlobalMainFunction(const FunctionDecl* fd) {
 /// single-rule test fixtures for Rules 0–6 and 7-1-1 without namespaces are
 /// not spuriously flagged).
 class GlobalNamespaceContextScanner
-    : public RecursiveASTVisitor<GlobalNamespaceContextScanner> {
+    : public SafeASTVisitor<GlobalNamespaceContextScanner> {
 public:
     GlobalNamespaceContextScanner(const SourceManager& sm,
                                   const ViolationStore* store)
@@ -145,7 +145,7 @@ private:
 };
 
 class GlobalNamespaceVisitor
-    : public RecursiveASTVisitor<GlobalNamespaceVisitor> {
+    : public SafeASTVisitor<GlobalNamespaceVisitor> {
 public:
     GlobalNamespaceVisitor(
         const SourceManager& sm,
@@ -165,7 +165,7 @@ public:
         if (lsd && lsd->getLanguage() == LinkageSpecLanguageIDs::C) {
             return true;
         }
-        return RecursiveASTVisitor<GlobalNamespaceVisitor>::TraverseLinkageSpecDecl(lsd);
+        return SafeASTVisitor<GlobalNamespaceVisitor>::TraverseLinkageSpecDecl(lsd);
     }
 
     bool VisitFunctionDecl(FunctionDecl* fd) {
@@ -306,7 +306,7 @@ void Rule731::run(const MatchFinder::MatchResult& result) {
     const SourceManager& sm = *result.SourceManager;
 
     GlobalNamespaceContextScanner scanner(sm, store_);
-    scanner.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
+    scanner.TraverseAST(*result.Context);
     if (!scanner.shouldCheckGlobalNamespace()) {
         return;
     }
@@ -317,7 +317,7 @@ void Rule731::run(const MatchFinder::MatchResult& result) {
         [this](SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

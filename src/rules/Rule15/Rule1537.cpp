@@ -71,27 +71,35 @@ private:
     /// Parse a balanced `{ ... }` compound statement starting at `tokens_[idx]`
     /// (where `tokens_[idx]` is `{`), recursively scanning any nested `try`
     /// blocks inside the compound statement.
-    void parseCompoundBlock(size_t& idx, std::vector<SourceLocation>& violations) {
+    void parseCompoundBlock(size_t& idx,
+                            std::vector<SourceLocation>& violations,
+                            unsigned depth = 0) {
         if (idx >= tokens_.size() || !tokens_[idx].is(tok::l_brace)) return;
         ++idx; // consume '{'
-        int depth = 1;
-        while (idx < tokens_.size() && depth > 0) {
+        if (depth >= 128) return;
+        int braceDepth = 1;
+        while (idx < tokens_.size() && braceDepth > 0) {
             if (isTry(tokens_[idx])) {
-                parseTryBlock(idx, violations);
+                size_t before = idx;
+                parseTryBlock(idx, violations, depth + 1);
+                if (idx <= before) ++idx;
                 continue;
             }
             if (tokens_[idx].is(tok::l_brace)) {
-                ++depth;
+                ++braceDepth;
             } else if (tokens_[idx].is(tok::r_brace)) {
-                --depth;
+                --braceDepth;
             }
             ++idx;
         }
     }
 
     /// Parse a `try` or function-try-block starting at `tokens_[idx] == kw_try`.
-    void parseTryBlock(size_t& idx, std::vector<SourceLocation>& violations) {
+    void parseTryBlock(size_t& idx,
+                       std::vector<SourceLocation>& violations,
+                       unsigned depth = 0) {
         ++idx; // consume 'try'
+        if (depth >= 128) return;
 
         // For constructor function-try-blocks (`C() try : a(1) { ... }`),
         // advance to the opening `{` of the try body.
@@ -102,7 +110,7 @@ private:
 
         // Parse the `{ ... }` body of the `try` statement (recursively handling
         // any nested `try-catch` statements inside it).
-        parseCompoundBlock(idx, violations);
+        parseCompoundBlock(idx, violations, depth + 1);
 
         // Now parse all consecutive `catch (...) { ... }` handlers belonging to
         // this `try` statement.
@@ -133,7 +141,7 @@ private:
             }
 
             if (idx < tokens_.size() && tokens_[idx].is(tok::l_brace)) {
-                parseCompoundBlock(idx, violations);
+                parseCompoundBlock(idx, violations, depth + 1);
             }
         }
     }

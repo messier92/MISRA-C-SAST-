@@ -257,6 +257,79 @@ void testDuplicatePathSpellingsAndHeaderCanonicalisation() {
     REQUIRE(store.getViolations()[0].ruleId == "MISRA-2-10-1");
 }
 
+/// 7. Test that project-owned .cpp, .c, .h, .hpp files under project root are
+///    kept while Qt, MSVC, Windows SDK, compiler builtin, and third-party
+///    dependency paths are filtered out.
+void testSourceLocationAndExternalDirectoryFiltering() {
+    ViolationStore store("C:\\repo");
+    const auto& filter = store.getFilter();
+
+    // Project-owned implementation and header files MUST be included:
+    REQUIRE(filter.isProjectFile("C:\\repo\\src\\main.cpp"));
+    REQUIRE(filter.isProjectFile("C:\\repo\\src\\driver.c"));
+    REQUIRE(filter.isProjectFile("C:\\repo\\include\\config.h"));
+    REQUIRE(filter.isProjectFile("C:\\repo\\include\\model.hpp"));
+
+    // Qt installation directories, MSVC toolchain, Windows SDK, compiler builtins,
+    // and third-party dependencies (even inside C:\repo) MUST be skipped:
+    REQUIRE(!filter.isProjectFile("C:\\Qt\\6.5.0\\msvc2019_64\\include\\QtCore\\qobject.h"));
+    REQUIRE(!filter.isProjectFile("C:\\repo\\Qt\\include\\QtWidgets\\QWidget.h"));
+    REQUIRE(!filter.isProjectFile("C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44\\include\\vector"));
+    REQUIRE(!filter.isProjectFile("C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\Windows.h"));
+    REQUIRE(!filter.isProjectFile("<built-in>"));
+    REQUIRE(!filter.isProjectFile("C:\\Program Files\\llvm\\lib\\clang\\18\\include\\stdint.h"));
+    REQUIRE(!filter.isProjectFile("C:\\repo\\third_party\\nlohmann\\json.hpp"));
+    REQUIRE(!filter.isProjectFile("C:\\repo\\external\\fmt\\format.h"));
+    REQUIRE(!filter.isProjectFile("C:\\repo\\vendor\\sdk\\api.h"));
+    REQUIRE(!filter.isProjectFile("C:\\repo\\vcpkg_installed\\x64-windows\\include\\zlib.h"));
+}
+
+/// 8. Test crash-proof incremental snapshot report generation and failure logging.
+void testIncrementalSnapshotAndFailureReporting() {
+    ViolationStore store;
+    store.setReportTag("2026-11-03 12:00:00");
+    store.setScannedFiles({"alpha.cpp", "beta.cpp"});
+    store.registerRule("MISRA-5-2-4");
+    store.registerRule("MISRA-0-1-6");
+
+    const std::string snapshotPath = "temp_snapshot_test_report.txt";
+
+    // Write initial empty snapshot before any file completes.
+    store.writeSnapshotReport(snapshotPath);
+    {
+        std::ifstream ifs(snapshotPath);
+        REQUIRE(ifs.is_open());
+        std::ostringstream ss;
+        ss << ifs.rdbuf();
+        REQUIRE(ss.str().find("No violations found.") != std::string::npos);
+    }
+
+    // Add conflicting violations on line 10 and record a timeout failure on beta.cpp.
+    store.addViolation(makeViolation("alpha.cpp", 10, 5, "MISRA-0-1-6", "Unused value"));
+    store.addViolation(makeViolation("alpha.cpp", 10, 9, "MISRA-5-2-4", "C-style cast"));
+    store.recordFileFailure("beta.cpp", "Timed out after 60s");
+
+    // Write incremental snapshot and verify precedence was applied on the snapshot
+    // while live violations in the store are still preserved for subsequent TUs.
+    store.writeSnapshotReport(snapshotPath);
+    REQUIRE(store.getViolations().size() == 2);
+    REQUIRE(store.getFailedFiles().size() == 1);
+
+    {
+        std::ifstream ifs(snapshotPath);
+        REQUIRE(ifs.is_open());
+        std::ostringstream ss;
+        ss << ifs.rdbuf();
+        std::string content = ss.str();
+        REQUIRE(content.find("Failed / Timed-out files (1):") != std::string::npos);
+        REQUIRE(content.find("Timed out after 60s") != std::string::npos);
+        REQUIRE(content.find("Violations (1):") != std::string::npos);
+        REQUIRE(content.find("[MISRA-5-2-4]") != std::string::npos);
+    }
+
+    std::remove(snapshotPath.c_str());
+}
+
 } // namespace
 
 int main() {
@@ -266,6 +339,8 @@ int main() {
     testSingleViolationLinesUnaffected();
     testReportFormatPreserved();
     testDuplicatePathSpellingsAndHeaderCanonicalisation();
+    testSourceLocationAndExternalDirectoryFiltering();
+    testIncrementalSnapshotAndFailureReporting();
 
     std::cout << "All ViolationStore precedence tests passed successfully.\n";
     return 0;

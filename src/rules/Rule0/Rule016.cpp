@@ -92,7 +92,7 @@ const VarDecl* getDirectAssignedVar(const Stmt* s, const DeclRefExpr** lhsDre = 
 }
 
 /// Collects variable reads and writes across an AST subtree.
-class VarAccessCollector : public RecursiveASTVisitor<VarAccessCollector> {
+class VarAccessCollector : public SafeASTVisitor<VarAccessCollector> {
 public:
     bool VisitBinaryOperator(BinaryOperator* bo) {
         if (bo->getOpcode() == BO_Assign) {
@@ -135,8 +135,9 @@ public:
 /// nested control-flow statements) reads `targetVar`.
 bool exprSubtreeReadsVar(const Stmt* s,
                          const VarDecl* targetVar,
-                         const std::unordered_set<const DeclRefExpr*>& pureWriteDres) {
-    if (!s) return false;
+                         const std::unordered_set<const DeclRefExpr*>& pureWriteDres,
+                         unsigned depth = 0) {
+    if (!s || depth >= 128) return false;
     if (isa<CompoundStmt>(s) || isa<IfStmt>(s) || isa<WhileStmt>(s) ||
         isa<DoStmt>(s) || isa<ForStmt>(s) || isa<SwitchStmt>(s)) {
         return false;
@@ -149,7 +150,7 @@ bool exprSubtreeReadsVar(const Stmt* s,
         }
     }
     for (const Stmt* child : s->children()) {
-        if (exprSubtreeReadsVar(child, targetVar, pureWriteDres)) return true;
+        if (exprSubtreeReadsVar(child, targetVar, pureWriteDres, depth + 1)) return true;
     }
     return false;
 }
@@ -198,16 +199,15 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
 
     // 1. Collect file-scope static variables and all functions in the TU.
     VarAccessCollector tuAccess;
-    tuAccess.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
+    tuAccess.TraverseAST(ctx);
 
-    class TUDeclFinder : public RecursiveASTVisitor<TUDeclFinder> {
+    class TUDeclFinder : public SafeASTVisitor<TUDeclFinder> {
     public:
-        explicit TUDeclFinder(const SourceManager& sm) : sm_(sm) {}
+        TUDeclFinder(const SourceManager& sm, const ViolationStore* store)
+            : sm_(sm), store_(store) {}
 
         bool VisitVarDecl(VarDecl* vd) {
-            if (!vd || vd->getBeginLoc().isInvalid() ||
-                sm_.isInSystemHeader(vd->getBeginLoc()) ||
-                !sm_.isInMainFile(sm_.getSpellingLoc(vd->getBeginLoc()))) {
+            if (!vd || !Rule::isProjectLocation(vd->getBeginLoc(), sm_, store_)) {
                 return true;
             }
             if (isTargetFileStaticVar(vd)) {
@@ -221,8 +221,7 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
                 fd->isTemplateInstantiation()) {
                 return true;
             }
-            if (fd->getBeginLoc().isInvalid() ||
-                sm_.isInSystemHeader(fd->getBeginLoc())) {
+            if (!Rule::isProjectLocation(fd->getBeginLoc(), sm_, store_)) {
                 return true;
             }
             functions_.push_back(fd);
@@ -230,12 +229,13 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
         }
 
         const SourceManager& sm_;
+        const ViolationStore* store_ = nullptr;
         std::vector<const VarDecl*> fileStaticVars_;
         std::vector<const FunctionDecl*> functions_;
     };
 
-    TUDeclFinder finder(sm);
-    finder.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
+    TUDeclFinder finder(sm, store_);
+    finder.TraverseAST(ctx);
 
     // Check file-scope static variables with unused initializations.
     for (const VarDecl* vd : finder.fileStaticVars_) {
@@ -258,7 +258,7 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
         funcAccess.TraverseStmt(body);
 
         // Collect local variable declarations in this function.
-        class LocalVarFinder : public RecursiveASTVisitor<LocalVarFinder> {
+        class LocalVarFinder : public SafeASTVisitor<LocalVarFinder> {
         public:
             explicit LocalVarFinder(const SourceManager& sm) : sm_(sm) {}
             bool VisitVarDecl(VarDecl* vd) {

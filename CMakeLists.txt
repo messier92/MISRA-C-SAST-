@@ -138,6 +138,9 @@ if(WIN32)
         shell32.lib
         ole32.lib
     )
+    if(MSVC)
+        target_link_options(misra_checker PRIVATE "/STACK:33554432")
+    endif()
 endif()
 
 # ── Output directory ────────────────────────────────────────────

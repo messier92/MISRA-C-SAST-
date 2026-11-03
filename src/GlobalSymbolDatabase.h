@@ -4,6 +4,7 @@
 #include "ViolationStore.h"
 
 #include <map>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -61,6 +62,7 @@ private:
     /// Check for type-inconsistent external declarations.
     void evalInconsistentTypes(ViolationStore& store) const;
 
+    mutable std::mutex            mutex_;
     std::vector<DeclRecord>       declarations_;
     std::vector<IdentifierRecord> identifiers_;
 };

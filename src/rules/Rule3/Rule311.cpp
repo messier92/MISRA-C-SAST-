@@ -21,28 +21,15 @@ bool isHeaderFileLocation(clang::SourceLocation loc,
                           clang::ASTContext& ctx,
                           const ViolationStore* store) {
     const auto& sm = ctx.getSourceManager();
+    if (!Rule::isProjectLocation(loc, sm, store)) {
+        return false;
+    }
+
     clang::SourceLocation spellingLoc = sm.getSpellingLoc(loc);
-    if (spellingLoc.isInvalid() || sm.isInSystemHeader(spellingLoc)) {
-        return false;
-    }
-
-    clang::PresumedLoc presumed = sm.getPresumedLoc(spellingLoc);
-    if (presumed.isInvalid()) return false;
-
-    std::string filename = presumed.getFilename();
-    if (store && !store->getFilter().isProjectFile(filename)) {
-        return false;
-    }
-
-    if (!sm.isInMainFile(spellingLoc)) {
-        return true;
-    }
-
-    auto ext = std::filesystem::path(filename).extension().string();
-    return ext == ".h" || ext == ".hh" || ext == ".hpp" || ext == ".hxx";
+    return !sm.isInMainFile(spellingLoc);
 }
 
-class HeaderODRVisitor : public clang::RecursiveASTVisitor<HeaderODRVisitor> {
+class HeaderODRVisitor : public SafeASTVisitor<HeaderODRVisitor> {
 public:
     HeaderODRVisitor(
         clang::ASTContext& ctx,
@@ -146,7 +133,7 @@ void Rule311::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

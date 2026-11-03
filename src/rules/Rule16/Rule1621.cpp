@@ -27,14 +27,6 @@ struct DirectiveInfo {
     bool hasExtraDefineTokens = false;
 };
 
-bool hasHeaderExtension(llvm::StringRef filename) {
-    llvm::StringRef lower = filename;
-    return lower.ends_with_insensitive(".h") ||
-           lower.ends_with_insensitive(".hpp") ||
-           lower.ends_with_insensitive(".hh") ||
-           lower.ends_with_insensitive(".hxx");
-}
-
 std::string getTokenSpelling(const Token& tok) {
     if (tok.is(tok::raw_identifier)) {
         return tok.getRawIdentifier().str();
@@ -151,12 +143,7 @@ void Rule1621::run(const MatchFinder::MatchResult& result) {
 
     for (FileID fid : filesToCheck) {
         SourceLocation fileStart = sm.getLocForStartOfFile(fid);
-        if (fileStart.isInvalid() || sm.isInSystemHeader(fileStart)) continue;
-
-        PresumedLoc presumed = sm.getPresumedLoc(fileStart);
-        if (presumed.isInvalid()) continue;
-        std::string filename = presumed.getFilename();
-        if (store_ && !store_->getFilter().isProjectFile(filename)) {
+        if (!Rule::isProjectLocation(fileStart, sm, store_)) {
             continue;
         }
 
@@ -188,10 +175,10 @@ void Rule1621::run(const MatchFinder::MatchResult& result) {
             }
         }
 
-        bool isHeader = hasHeaderExtension(filename);
-        // Inspect header files (.h/.hpp/.hh/.hxx) and test fixtures that begin
-        // with an include guard structure (such as tests/Rule16/Rule1621.cpp).
-        if (!isHeader && !hasValidIncludeGuard) {
+        bool isIncludedHeader = !sm.isInMainFile(fileStart);
+        // Inspect included files (via SourceManager location check) and test
+        // fixtures that begin with an include guard structure.
+        if (!isIncludedHeader && !hasValidIncludeGuard) {
             continue;
         }
 

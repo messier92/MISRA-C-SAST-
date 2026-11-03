@@ -14,7 +14,8 @@ namespace {
 
 bool isEffectivelyBooleanExpr(const Expr* e) {
     if (!e) return true;
-    while (e) {
+    unsigned hops = 0;
+    while (e && ++hops <= 128) {
         const Expr* next = e->IgnoreParenImpCasts();
         if (const auto* ewc = dyn_cast<ExprWithCleanups>(next)) {
             next = ewc->getSubExpr();

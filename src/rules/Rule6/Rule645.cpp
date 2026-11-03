@@ -16,7 +16,8 @@ namespace misra {
 namespace {
 
 const Stmt* unwrapLabelsAndImplicit(const Stmt* s) {
-    while (s) {
+    unsigned hops = 0;
+    while (s && ++hops <= 128) {
         if (const auto* ls = dyn_cast<LabelStmt>(s)) {
             s = ls->getSubStmt();
         } else if (const auto* expr = dyn_cast<Expr>(s)) {
@@ -36,7 +37,8 @@ const Stmt* unwrapLabelsAndImplicit(const Stmt* s) {
 /// Returns true if statement `s` unconditionally terminates the enclosing
 /// switch-clause with a `break` or `throw` statement (ignoring `break`s that
 /// belong to nested loops or nested switch statements).
-bool terminatesWithBreakOrThrow(const Stmt* s) {
+bool terminatesWithBreakOrThrow(const Stmt* s, unsigned depth = 0) {
+    if (depth >= 128) return false;
     s = unwrapLabelsAndImplicit(s);
     if (!s) return false;
 
@@ -47,15 +49,15 @@ bool terminatesWithBreakOrThrow(const Stmt* s) {
     if (const auto* cs = dyn_cast<CompoundStmt>(s)) {
         for (auto it = cs->body_rbegin(); it != cs->body_rend(); ++it) {
             if (!*it || isa<NullStmt>(*it)) continue;
-            return terminatesWithBreakOrThrow(*it);
+            return terminatesWithBreakOrThrow(*it, depth + 1);
         }
         return false;
     }
 
     if (const auto* ifStmt = dyn_cast<IfStmt>(s)) {
         if (ifStmt->getThen() && ifStmt->getElse()) {
-            return terminatesWithBreakOrThrow(ifStmt->getThen()) &&
-                   terminatesWithBreakOrThrow(ifStmt->getElse());
+            return terminatesWithBreakOrThrow(ifStmt->getThen(), depth + 1) &&
+                   terminatesWithBreakOrThrow(ifStmt->getElse(), depth + 1);
         }
         return false;
     }

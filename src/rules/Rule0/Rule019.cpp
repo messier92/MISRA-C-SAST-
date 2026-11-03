@@ -53,7 +53,7 @@ bool exprMayHaveSideEffects(const Expr* e, ASTContext& ctx) {
     if (!e) return false;
     if (e->HasSideEffects(ctx)) return true;
 
-    class CallOrVolatileFinder : public RecursiveASTVisitor<CallOrVolatileFinder> {
+    class CallOrVolatileFinder : public SafeASTVisitor<CallOrVolatileFinder> {
     public:
         bool VisitCallExpr(CallExpr*) {
             found_ = true;
@@ -98,7 +98,7 @@ bool exprMayHaveSideEffects(const Expr* e, ASTContext& ctx) {
 }
 
 class PureWriteAndAliasCollector
-    : public RecursiveASTVisitor<PureWriteAndAliasCollector> {
+    : public SafeASTVisitor<PureWriteAndAliasCollector> {
 public:
     bool VisitBinaryOperator(BinaryOperator* bo) {
         if (bo->getOpcode() == BO_Assign) {
@@ -140,8 +140,9 @@ public:
 
 bool exprSubtreeReadsVar(const Stmt* s,
                          const VarDecl* targetVar,
-                         const std::unordered_set<const DeclRefExpr*>& pureWriteDres) {
-    if (!s) return false;
+                         const std::unordered_set<const DeclRefExpr*>& pureWriteDres,
+                         unsigned depth = 0) {
+    if (!s || depth >= 128) return false;
     if (isa<CompoundStmt>(s) || isa<IfStmt>(s) || isa<WhileStmt>(s) ||
         isa<DoStmt>(s) || isa<ForStmt>(s) || isa<SwitchStmt>(s)) {
         return false;
@@ -154,7 +155,7 @@ bool exprSubtreeReadsVar(const Stmt* s,
         }
     }
     for (const Stmt* child : s->children()) {
-        if (exprSubtreeReadsVar(child, targetVar, pureWriteDres)) return true;
+        if (exprSubtreeReadsVar(child, targetVar, pureWriteDres, depth + 1)) return true;
     }
     return false;
 }
@@ -221,10 +222,10 @@ void Rule019::run(const MatchFinder::MatchResult& result) {
         return;
     }
 
-    ParentBuilder parentBuilder;
-    parentBuilder.build(ctx);
-
     Stmt* body = func->getBody();
+    ParentBuilder parentBuilder;
+    parentBuilder.buildStmt(body);
+
     PureWriteAndAliasCollector collector;
     collector.TraverseStmt(body);
 
@@ -251,7 +252,9 @@ void Rule019::run(const MatchFinder::MatchResult& result) {
 
                 // Ensure the assignment is a standalone statement (not a sub-expression).
                 const Stmt* parent = parentBuilder.getParent(s);
-                while (parent && (isa<ExprWithCleanups>(parent) || isa<ParenExpr>(parent))) {
+                unsigned hops = 0;
+                while (parent && ++hops <= 128 &&
+                       (isa<ExprWithCleanups>(parent) || isa<ParenExpr>(parent))) {
                     parent = parentBuilder.getParent(parent);
                 }
                 if (!isStandaloneStmtContainer(parent, s)) continue;

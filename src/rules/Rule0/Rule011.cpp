@@ -13,35 +13,38 @@ namespace misra {
 
 namespace {
 
+constexpr unsigned kMaxStmtRecursionDepth = 128;
+
 /// Returns true if `s` contains any label (`LabelStmt`, `CaseStmt`, `DefaultStmt`)
 /// that could serve as a jump target into `s`.
-bool containsLabel(const Stmt* s) {
-    if (!s) return false;
+bool containsLabel(const Stmt* s, unsigned depth = 0) {
+    if (!s || depth >= kMaxStmtRecursionDepth) return false;
     if (isa<LabelStmt>(s) || isa<SwitchCase>(s)) return true;
     for (const Stmt* child : s->children()) {
-        if (containsLabel(child)) return true;
+        if (containsLabel(child, depth + 1)) return true;
     }
     return false;
 }
 
 /// Returns true if `s` contains a `BreakStmt` that breaks out of the current loop
 /// (i.e. not nested inside an inner loop or switch).
-bool containsLoopBreak(const Stmt* s) {
-    if (!s) return false;
+bool containsLoopBreak(const Stmt* s, unsigned depth = 0) {
+    if (!s || depth >= kMaxStmtRecursionDepth) return false;
     if (isa<BreakStmt>(s)) return true;
     if (isa<WhileStmt>(s) || isa<ForStmt>(s) || isa<CXXForRangeStmt>(s) ||
         isa<DoStmt>(s) || isa<SwitchStmt>(s)) {
         return false;
     }
     for (const Stmt* child : s->children()) {
-        if (containsLoopBreak(child)) return true;
+        if (containsLoopBreak(child, depth + 1)) return true;
     }
     return false;
 }
 
 /// Unwraps label/case wrappers to get the underlying statement.
 const Stmt* unwrapLabels(const Stmt* s) {
-    while (s) {
+    unsigned hops = 0;
+    while (s && ++hops <= kMaxStmtRecursionDepth) {
         if (const auto* sc = dyn_cast<SwitchCase>(s)) {
             s = sc->getSubStmt();
         } else if (const auto* ls = dyn_cast<LabelStmt>(s)) {
@@ -69,8 +72,8 @@ bool isUninitializedDeclStmt(const Stmt* s) {
 /// Returns true if `s` unconditionally transfers control out of the current
 /// sequential block (via return, break, continue, throw, goto, an if-else
 /// where both branches terminate, or an infinite loop without break).
-bool terminatesBlock(const Stmt* s, ASTContext& ctx) {
-    if (!s) return false;
+bool terminatesBlock(const Stmt* s, ASTContext& ctx, unsigned depth = 0) {
+    if (!s || depth >= kMaxStmtRecursionDepth) return false;
     s = unwrapLabels(s);
     if (!s) return false;
 
@@ -92,7 +95,7 @@ bool terminatesBlock(const Stmt* s, ASTContext& ctx) {
             if (isa<SwitchCase>(child) || isa<LabelStmt>(child)) {
                 terminated = false;
             }
-            if (terminatesBlock(child, ctx)) {
+            if (terminatesBlock(child, ctx, depth + 1)) {
                 terminated = true;
             }
         }
@@ -105,14 +108,14 @@ bool terminatesBlock(const Stmt* s, ASTContext& ctx) {
         if (cond && !cond->isValueDependent() &&
             cond->EvaluateAsBooleanCondition(condVal, ctx)) {
             if (condVal) {
-                return terminatesBlock(ifStmt->getThen(), ctx);
+                return terminatesBlock(ifStmt->getThen(), ctx, depth + 1);
             } else {
-                return ifStmt->getElse() && terminatesBlock(ifStmt->getElse(), ctx);
+                return ifStmt->getElse() && terminatesBlock(ifStmt->getElse(), ctx, depth + 1);
             }
         }
         if (ifStmt->getThen() && ifStmt->getElse()) {
-            return terminatesBlock(ifStmt->getThen(), ctx) &&
-                   terminatesBlock(ifStmt->getElse(), ctx);
+            return terminatesBlock(ifStmt->getThen(), ctx, depth + 1) &&
+                   terminatesBlock(ifStmt->getElse(), ctx, depth + 1);
         }
         return false;
     }
@@ -197,8 +200,9 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
         return;
     }
 
-    std::function<void(const Stmt*, bool)> checkStmt = [&](const Stmt* s, bool isSwitchBody) {
-        if (!s) return;
+    std::function<void(const Stmt*, bool, unsigned)> checkStmt =
+        [&](const Stmt* s, bool isSwitchBody, unsigned depth) {
+        if (!s || depth >= kMaxStmtRecursionDepth) return;
 
         if (const auto* compound = dyn_cast<CompoundStmt>(s)) {
             bool seenTerminator = isSwitchBody;
@@ -210,7 +214,7 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
                     seenTerminator = false;
                     const Stmt* sub = unwrapLabels(child);
                     if (sub) {
-                        checkStmt(sub, false);
+                        checkStmt(sub, false, depth + 1);
                         if (terminatesBlock(sub, ctx)) {
                             seenTerminator = true;
                         }
@@ -231,7 +235,7 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
                     }
                 }
 
-                checkStmt(child, false);
+                checkStmt(child, false, depth + 1);
 
                 if (terminatesBlock(child, ctx)) {
                     seenTerminator = true;
@@ -241,7 +245,7 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
         }
 
         if (const auto* switchStmt = dyn_cast<SwitchStmt>(s)) {
-            checkStmt(switchStmt->getBody(), true);
+            checkStmt(switchStmt->getBody(), true, depth + 1);
             return;
         }
 
@@ -259,12 +263,12 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
                         }
                     }
                     if (ifStmt->getElse()) {
-                        checkStmt(ifStmt->getElse(), false);
+                        checkStmt(ifStmt->getElse(), false, depth + 1);
                     }
                     return;
                 } else {
                     if (ifStmt->getThen()) {
-                        checkStmt(ifStmt->getThen(), false);
+                        checkStmt(ifStmt->getThen(), false, depth + 1);
                     }
                     if (ifStmt->getElse() && !containsLabel(ifStmt->getElse())) {
                         SourceLocation loc = getFirstExecutableLoc(ifStmt->getElse());
@@ -275,8 +279,8 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
                     return;
                 }
             }
-            if (ifStmt->getThen()) checkStmt(ifStmt->getThen(), false);
-            if (ifStmt->getElse()) checkStmt(ifStmt->getElse(), false);
+            if (ifStmt->getThen()) checkStmt(ifStmt->getThen(), false, depth + 1);
+            if (ifStmt->getElse()) checkStmt(ifStmt->getElse(), false, depth + 1);
             return;
         }
 
@@ -294,7 +298,7 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
                     return;
                 }
             }
-            if (whileStmt->getBody()) checkStmt(whileStmt->getBody(), false);
+            if (whileStmt->getBody()) checkStmt(whileStmt->getBody(), false, depth + 1);
             return;
         }
 
@@ -312,16 +316,16 @@ void Rule011::run(const MatchFinder::MatchResult& result) {
                     return;
                 }
             }
-            if (forStmt->getBody()) checkStmt(forStmt->getBody(), false);
+            if (forStmt->getBody()) checkStmt(forStmt->getBody(), false, depth + 1);
             return;
         }
 
         for (const Stmt* child : s->children()) {
-            if (child) checkStmt(child, false);
+            if (child) checkStmt(child, false, depth + 1);
         }
     };
 
-    checkStmt(func->getBody(), false);
+    checkStmt(func->getBody(), false, 0);
 }
 
 } // namespace misra

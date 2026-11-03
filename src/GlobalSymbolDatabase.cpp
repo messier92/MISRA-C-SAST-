@@ -10,6 +10,7 @@ void GlobalSymbolDatabase::addDeclaration(const DeclRecord& rec) {
     DeclRecord canonRec = rec;
     canonRec.file = ProjectFileFilter::canonicalisePath(rec.file);
     std::string normFile = ProjectFileFilter::normalisePath(canonRec.file);
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& existing : declarations_) {
         if (existing.line          == canonRec.line          &&
             existing.col           == canonRec.col           &&
@@ -26,6 +27,7 @@ void GlobalSymbolDatabase::addIdentifier(const IdentifierRecord& rec) {
     IdentifierRecord canonRec = rec;
     canonRec.file = ProjectFileFilter::canonicalisePath(rec.file);
     std::string normFile = ProjectFileFilter::normalisePath(canonRec.file);
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& existing : identifiers_) {
         if (existing.line  == canonRec.line  &&
             existing.name  == canonRec.name  &&
@@ -40,6 +42,7 @@ void GlobalSymbolDatabase::addIdentifier(const IdentifierRecord& rec) {
 // ── Evaluation ─────────────────────────────────────────────────
 
 void GlobalSymbolDatabase::evaluateAll(ViolationStore& store) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     evalMultipleDefinitions(store);
     evalInconsistentTypes(store);
 }

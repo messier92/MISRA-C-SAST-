@@ -14,8 +14,13 @@ public:
     /// If root is empty, the filter is disabled (all files pass).
     explicit ProjectFileFilter(const std::string& root = "");
 
-    /// Returns true if the given file path is under the project root.
+    /// Returns true if the given file path is under the project root
+    /// and does not belong to an external toolchain, SDK, Qt, or third-party directory.
     bool isProjectFile(const std::string& filePath) const;
+
+    /// Returns true if the path belongs to a compiler builtin buffer, MSVC toolchain,
+    /// Windows SDK, Qt installation directory, or third-party dependency directory.
+    static bool isExcludedExternalOrThirdPartyPath(const std::string& path);
 
     /// Resolves relative segments (`.`, `..`), symlinks, and slash direction
     /// to produce a single canonical path string for a physical file on disk.

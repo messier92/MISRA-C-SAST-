@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -67,6 +68,8 @@ void ViolationStore::addViolation(const Violation& v) {
     }
 
     std::string normFile = ProjectFileFilter::normalisePath(canonV.file);
+
+    std::lock_guard<std::mutex> lock(mutex_);
     // Deduplicate by canonical (file, line, ruleId), collapsing repeated
     // reports from headers included under different path spellings across TUs.
     for (auto& existing : violations_) {
@@ -83,10 +86,12 @@ void ViolationStore::addViolation(const Violation& v) {
 }
 
 void ViolationStore::registerRule(const std::string& ruleId) {
+    std::lock_guard<std::mutex> lock(mutex_);
     registeredRules_.insert(ruleId);
 }
 
 void ViolationStore::setScannedFiles(const std::vector<std::string>& files) {
+    std::lock_guard<std::mutex> lock(mutex_);
     scannedFiles_.clear();
     std::set<std::string> seen;
     for (const auto& f : files) {
@@ -98,7 +103,15 @@ void ViolationStore::setScannedFiles(const std::vector<std::string>& files) {
     }
 }
 
+void ViolationStore::recordFileFailure(const std::string& file,
+                                       const std::string& reason) {
+    std::string canon = ProjectFileFilter::canonicalisePath(file);
+    std::lock_guard<std::mutex> lock(mutex_);
+    failedFiles_.emplace_back(canon.empty() ? file : canon, reason);
+}
+
 void ViolationStore::setReportTag(const std::string& tag) {
+    std::lock_guard<std::mutex> lock(mutex_);
     reportTag_ = tag;
 }
 
@@ -142,13 +155,16 @@ bool ViolationStore::hasHigherPrecedence(const Violation& lhs, const Violation& 
     return lhs < rhs;
 }
 
-void ViolationStore::applyPrecedence() {
-    if (violations_.size() <= 1) return;
+void ViolationStore::resolvePrecedenceOnVector(std::vector<Violation>& vec) {
+    if (vec.size() <= 1) {
+        std::sort(vec.begin(), vec.end());
+        return;
+    }
 
     using LineKey = std::pair<std::string, uint32_t>;
     std::map<LineKey, std::vector<Violation>> byLine;
 
-    for (const auto& v : violations_) {
+    for (const auto& v : vec) {
         LineKey key{ProjectFileFilter::normalisePath(v.file), v.line};
         byLine[key].push_back(v);
     }
@@ -180,12 +196,19 @@ void ViolationStore::applyPrecedence() {
     }
 
     std::sort(resolved.begin(), resolved.end());
-    violations_ = std::move(resolved);
+    vec = std::move(resolved);
+}
+
+void ViolationStore::applyPrecedence() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    resolvePrecedenceOnVector(violations_);
 }
 
 // ── Report generation ──────────────────────────────────────────
 
-void ViolationStore::printReport(std::ostream& os) const {
+void ViolationStore::printReportFor(
+    std::ostream& os,
+    const std::vector<Violation>& violations) const {
     // Header.
     os << "================================================================\n";
     os << "  MISRA C++:2008 Static Analysis Report\n";
@@ -203,13 +226,22 @@ void ViolationStore::printReport(std::ostream& os) const {
         os << "\n";
     }
 
+    // Failed or timed-out files (if any).
+    if (!failedFiles_.empty()) {
+        os << "Failed / Timed-out files (" << failedFiles_.size() << "):\n";
+        for (const auto& [file, reason] : failedFiles_) {
+            os << "  " << file << "  [" << reason << "]\n";
+        }
+        os << "\n";
+    }
+
     // Violations (already sorted).
-    if (violations_.empty()) {
+    if (violations.empty()) {
         os << "No violations found.\n\n";
     } else {
-        os << "Violations (" << violations_.size() << "):\n";
+        os << "Violations (" << violations.size() << "):\n";
         os << std::string(72, '-') << "\n";
-        for (const auto& v : violations_) {
+        for (const auto& v : violations) {
             os << v.file << ":" << v.line << ":" << v.col
                << "  [" << v.ruleId << "]  " << v.message << "\n";
             if (!v.sourceLine.empty()) {
@@ -225,7 +257,7 @@ void ViolationStore::printReport(std::ostream& os) const {
     for (const auto& ruleId : registeredRules_) {
         counts[ruleId] = 0;
     }
-    for (const auto& v : violations_) {
+    for (const auto& v : violations) {
         counts[v.ruleId]++;
     }
 
@@ -234,32 +266,81 @@ void ViolationStore::printReport(std::ostream& os) const {
         os << "  " << std::left << std::setw(20) << ruleId
            << count << " violation" << (count == 1 ? "" : "s") << "\n";
     }
-    os << "\n  Total: " << violations_.size() << " violation"
-       << (violations_.size() == 1 ? "" : "s") << "\n";
+    os << "\n  Total: " << violations.size() << " violation"
+       << (violations.size() == 1 ? "" : "s") << "\n";
     os << "================================================================\n";
 }
 
-size_t ViolationStore::finalize(const std::string& outputPath) {
-    // Apply per-line MISRA rule precedence after the complete scan.
-    applyPrecedence();
+bool ViolationStore::writeFileAtomically(const std::string& outputPath,
+                                         const std::string& content) {
+    if (outputPath.empty()) return false;
 
-    // Sort violations.
-    std::sort(violations_.begin(), violations_.end());
+    std::string tmpPath = outputPath + ".tmp";
+    {
+        std::ofstream tmpOut(tmpPath, std::ios::out | std::ios::trunc);
+        if (tmpOut.is_open()) {
+            tmpOut << content;
+            tmpOut.flush();
+            if (tmpOut.good()) {
+                tmpOut.close();
+                std::error_code ec;
+                std::filesystem::rename(tmpPath, outputPath, ec);
+                if (!ec) {
+                    return true;
+                }
+                std::filesystem::remove(tmpPath, ec);
+            }
+        }
+    }
+
+    std::ofstream ofs(outputPath, std::ios::out | std::ios::trunc);
+    if (!ofs.is_open()) return false;
+    ofs << content;
+    ofs.flush();
+    return ofs.good();
+}
+
+void ViolationStore::writeSnapshotReport(const std::string& outputPath) const {
+    if (outputPath.empty()) return;
+
+    std::string reportContent;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        std::vector<Violation> snapshot = violations_;
+        resolvePrecedenceOnVector(snapshot);
+
+        std::ostringstream oss;
+        printReportFor(oss, snapshot);
+        reportContent = oss.str();
+    }
+
+    writeFileAtomically(outputPath, reportContent);
+}
+
+size_t ViolationStore::finalize(const std::string& outputPath) {
+    std::string reportContent;
+    size_t total = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        resolvePrecedenceOnVector(violations_);
+        total = violations_.size();
+
+        std::ostringstream oss;
+        printReportFor(oss, violations_);
+        reportContent = oss.str();
+    }
 
     // Console output.
-    printReport(std::cout);
+    std::cout << reportContent;
 
     // File output.
-    std::ofstream ofs(outputPath);
-    if (ofs.is_open()) {
-        printReport(ofs);
-        ofs.close();
+    if (writeFileAtomically(outputPath, reportContent)) {
         std::cout << "\nReport written to: " << outputPath << "\n";
     } else {
         std::cerr << "Warning: could not write report to " << outputPath << "\n";
     }
 
-    return violations_.size();
+    return total;
 }
 
 } // namespace misra

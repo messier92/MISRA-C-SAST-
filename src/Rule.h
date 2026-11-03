@@ -2,6 +2,7 @@
 #define MISRA_RULE_H
 
 #include "GlobalSymbolDatabase.h"
+#include "SafeASTVisitor.h"
 #include "ViolationStore.h"
 
 #include "clang/AST/ASTContext.h"
@@ -15,12 +16,13 @@ namespace misra {
 
 // ── ParentBuilder ──────────────────────────────────────────────
 
-/// Builds a stmt-to-parent map for a translation unit.
+/// Builds a stmt-to-parent map for a translation unit or statement subtree.
 /// Clang does not provide cheap parent lookup, so rules that need it
-/// use this helper to build the map once per TU.
-class ParentBuilder : public clang::RecursiveASTVisitor<ParentBuilder> {
+/// use this helper to build the map once per TU or function.
+class ParentBuilder : public SafeASTVisitor<ParentBuilder> {
 public:
     void build(clang::ASTContext& ctx);
+    void buildStmt(clang::Stmt* root);
 
     /// Returns the parent Stmt of `child`, or nullptr if not found.
     const clang::Stmt* getParent(const clang::Stmt* child) const;
@@ -85,8 +87,18 @@ public:
     static std::string getCanonicalFilePath(clang::SourceLocation loc,
                                             const clang::SourceManager& sm);
 
+    /// Returns true if `loc` originates from a project-owned source or header
+    /// file (under the configured project root) and NOT from a compiler builtin,
+    /// MSVC toolchain, Windows SDK, Qt installation, or third-party directory.
+    static bool isProjectLocation(clang::SourceLocation loc,
+                                  const clang::SourceManager& sm,
+                                  const ViolationStore* store = nullptr);
+
 protected:
     // ── Helpers available to subclasses ──────────────────────────
+
+    /// Convenience member overload using injected `ctx_` and `store_`.
+    bool isProjectLocation(clang::SourceLocation loc) const;
 
     /// Report a file-level violation at the given source location.
     /// Extracts file/line/col and the source line from `loc`.

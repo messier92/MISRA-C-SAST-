@@ -1,0 +1,480 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "misra_checker",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Debug-f0fd5388def67a73c31a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RISCVTargetParserTableGen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RISCVTargetParserTableGen-Debug-73e5b99e4f1689b7f430.json",
+					"name" : "RISCVTargetParserTableGen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Debug-b3b6364abc6ff3769490.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "acc_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-acc_gen-Debug-35399cad8fce2807a587.json",
+					"name" : "acc_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clang-tablegen-targets::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clang-tablegen-targets-Debug-316796c9cd90d3c83860.json",
+					"name" : "clang-tablegen-targets",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "intrinsics_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-intrinsics_gen-Debug-157419ee0a0f4a54f412.json",
+					"name" : "intrinsics_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "misra_checker::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-misra_checker-Debug-7fb20b7d7168b62af50c.json",
+					"name" : "misra_checker",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "omp_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-omp_gen-Debug-0c7b876e7ecda3762cd7.json",
+					"name" : "omp_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "violation_store_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-violation_store_test-Debug-09aae31bbdb86060b7ec.json",
+					"name" : "violation_store_test",
+					"projectIndex" : 0
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Release-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "misra_checker",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Release-f0fd5388def67a73c31a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RISCVTargetParserTableGen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RISCVTargetParserTableGen-Release-73e5b99e4f1689b7f430.json",
+					"name" : "RISCVTargetParserTableGen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Release-b3b6364abc6ff3769490.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "acc_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-acc_gen-Release-35399cad8fce2807a587.json",
+					"name" : "acc_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clang-tablegen-targets::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clang-tablegen-targets-Release-316796c9cd90d3c83860.json",
+					"name" : "clang-tablegen-targets",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "intrinsics_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-intrinsics_gen-Release-157419ee0a0f4a54f412.json",
+					"name" : "intrinsics_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "misra_checker::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-misra_checker-Release-e481c6317f03730595d8.json",
+					"name" : "misra_checker",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "omp_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-omp_gen-Release-0c7b876e7ecda3762cd7.json",
+					"name" : "omp_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "violation_store_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-violation_store_test-Release-58f45ed4d99b2e81bc7f.json",
+					"name" : "violation_store_test",
+					"projectIndex" : 0
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-MinSizeRel-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"name" : "MinSizeRel",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "misra_checker",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-f0fd5388def67a73c31a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RISCVTargetParserTableGen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RISCVTargetParserTableGen-MinSizeRel-73e5b99e4f1689b7f430.json",
+					"name" : "RISCVTargetParserTableGen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-MinSizeRel-b3b6364abc6ff3769490.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "acc_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-acc_gen-MinSizeRel-35399cad8fce2807a587.json",
+					"name" : "acc_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clang-tablegen-targets::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clang-tablegen-targets-MinSizeRel-316796c9cd90d3c83860.json",
+					"name" : "clang-tablegen-targets",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "intrinsics_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-intrinsics_gen-MinSizeRel-157419ee0a0f4a54f412.json",
+					"name" : "intrinsics_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "misra_checker::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-misra_checker-MinSizeRel-504a466dd327ab10d5f3.json",
+					"name" : "misra_checker",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "omp_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-omp_gen-MinSizeRel-0c7b876e7ecda3762cd7.json",
+					"name" : "omp_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "violation_store_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-violation_store_test-MinSizeRel-710470bfb71454a05c44.json",
+					"name" : "violation_store_test",
+					"projectIndex" : 0
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-RelWithDebInfo-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "misra_checker",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-f0fd5388def67a73c31a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RISCVTargetParserTableGen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RISCVTargetParserTableGen-RelWithDebInfo-73e5b99e4f1689b7f430.json",
+					"name" : "RISCVTargetParserTableGen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-RelWithDebInfo-b3b6364abc6ff3769490.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "acc_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-acc_gen-RelWithDebInfo-35399cad8fce2807a587.json",
+					"name" : "acc_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clang-tablegen-targets::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clang-tablegen-targets-RelWithDebInfo-316796c9cd90d3c83860.json",
+					"name" : "clang-tablegen-targets",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "intrinsics_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-intrinsics_gen-RelWithDebInfo-157419ee0a0f4a54f412.json",
+					"name" : "intrinsics_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "misra_checker::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-misra_checker-RelWithDebInfo-bcaee08fbd56e6128d42.json",
+					"name" : "misra_checker",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "omp_gen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-omp_gen-RelWithDebInfo-0c7b876e7ecda3762cd7.json",
+					"name" : "omp_gen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "violation_store_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-violation_store_test-RelWithDebInfo-c7b6e4e3c766332e2811.json",
+					"name" : "violation_store_test",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/HanLo/Projects/misra/build",
+		"source" : "C:/Users/HanLo/Projects/misra"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

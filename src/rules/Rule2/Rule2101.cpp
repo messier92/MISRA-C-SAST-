@@ -99,7 +99,7 @@ std::string normalizeIdentifier(llvm::StringRef name) {
     return rnCollapsed;
 }
 
-class TypographicVisitor : public clang::RecursiveASTVisitor<TypographicVisitor> {
+class TypographicVisitor : public SafeASTVisitor<TypographicVisitor> {
 public:
     TypographicVisitor(clang::ASTContext& ctx,
                        const ViolationStore* store,
@@ -154,7 +154,7 @@ void Rule2101::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

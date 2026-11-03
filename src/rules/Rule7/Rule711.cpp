@@ -34,7 +34,8 @@ namespace {
 const VarDecl* getDirectModifiedVar(const Expr* e) {
     if (!e) return nullptr;
     e = e->IgnoreParens();
-    while (e) {
+    unsigned hops = 0;
+    while (e && ++hops <= 128) {
         if (const auto* ice = dyn_cast<ImplicitCastExpr>(e)) {
             CastKind ck = ice->getCastKind();
             if (ck == CK_LValueToRValue || ck == CK_ArrayToPointerDecay ||
@@ -76,16 +77,16 @@ const VarDecl* getDirectModifiedVar(const Expr* e) {
     return nullptr;
 }
 
-bool exprContainsExplicitCast(const Stmt* s) {
-    if (!s) return false;
+bool exprContainsExplicitCast(const Stmt* s, unsigned depth = 0) {
+    if (!s || depth >= 128) return false;
     if (isa<ExplicitCastExpr>(s)) return true;
     for (const Stmt* child : s->children()) {
-        if (exprContainsExplicitCast(child)) return true;
+        if (exprContainsExplicitCast(child, depth + 1)) return true;
     }
     return false;
 }
 
-class FunctionVarAnalyzer : public RecursiveASTVisitor<FunctionVarAnalyzer> {
+class FunctionVarAnalyzer : public SafeASTVisitor<FunctionVarAnalyzer> {
 public:
     explicit FunctionVarAnalyzer(ASTContext& ctx) : ctx_(ctx) {}
 

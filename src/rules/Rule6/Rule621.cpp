@@ -47,18 +47,23 @@ bool isStandaloneAssignment(const Stmt* assignStmt, const ParentBuilder& parents
     // (such as `(x = y)`) is only standalone if the parent of the `ParenExpr`
     // is itself a standalone statement container; if the parent is another
     // expression or a condition, walking past `ParenExpr` will see that parent.
-    while (parent && (isTransparentWrapper(parent) || isa<ParenExpr>(parent))) {
+    unsigned hops = 0;
+    while (parent && ++hops <= 128 &&
+           (isTransparentWrapper(parent) || isa<ParenExpr>(parent))) {
         cur = parent;
         parent = parents.getParent(cur);
     }
 
     // Also allow comma expressions where each side is a standalone expression
     // (e.g. `for (i = 0, j = 0; ...; i += 1, j += 1)`).
+    unsigned commaHops = 0;
     while (const auto* comma = dyn_cast_or_null<BinaryOperator>(parent)) {
-        if (comma->getOpcode() != BO_Comma) break;
+        if (++commaHops > 128 || comma->getOpcode() != BO_Comma) break;
         cur = parent;
         parent = parents.getParent(cur);
-        while (parent && (isTransparentWrapper(parent) || isa<ParenExpr>(parent))) {
+        unsigned innerHops = 0;
+        while (parent && ++innerHops <= 128 &&
+               (isTransparentWrapper(parent) || isa<ParenExpr>(parent))) {
             cur = parent;
             parent = parents.getParent(cur);
         }
@@ -98,7 +103,7 @@ bool isStandaloneAssignment(const Stmt* assignStmt, const ParentBuilder& parents
 }
 
 class SubExprAssignmentVisitor
-    : public RecursiveASTVisitor<SubExprAssignmentVisitor> {
+    : public SafeASTVisitor<SubExprAssignmentVisitor> {
 public:
     SubExprAssignmentVisitor(
         ASTContext& ctx,
@@ -184,7 +189,7 @@ void Rule621::run(const MatchFinder::MatchResult& result) {
     }
 
     ParentBuilder parents;
-    parents.build(ctx);
+    parents.buildStmt(func->getBody());
 
     SubExprAssignmentVisitor visitor(
         ctx,

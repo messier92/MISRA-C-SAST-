@@ -25,7 +25,7 @@ std::string normalizePath(const std::string& path) {
 }
 
 class ExternObjectFileVisitor
-    : public clang::RecursiveASTVisitor<ExternObjectFileVisitor> {
+    : public SafeASTVisitor<ExternObjectFileVisitor> {
 public:
     ExternObjectFileVisitor(
         clang::ASTContext& ctx,
@@ -99,7 +99,7 @@ void Rule323::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

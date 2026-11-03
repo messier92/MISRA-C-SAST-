@@ -27,14 +27,16 @@ namespace {
 /// Collects names of types, functions, and objects that are actually used
 /// in the translation unit so unused code (uninstantiated templates, uncalled
 /// functions, unused types) is not reported by Rule 3-2-2.
-class UsedEntityCollector : public clang::RecursiveASTVisitor<UsedEntityCollector> {
+class UsedEntityCollector : public SafeASTVisitor<UsedEntityCollector> {
 public:
     explicit UsedEntityCollector(const clang::SourceManager& sm) : sm_(sm) {}
 
     void markTypeUsed(clang::QualType qt) {
         if (qt.isNull()) return;
         qt = qt.getCanonicalType();
-        while (qt->isPointerType() || qt->isReferenceType() || qt->isArrayType()) {
+        unsigned hops = 0;
+        while ((qt->isPointerType() || qt->isReferenceType() || qt->isArrayType()) &&
+               ++hops <= 64) {
             if (qt->isPointerType() || qt->isReferenceType()) {
                 qt = qt->getPointeeType();
             } else if (const auto* at = qt->getAsArrayTypeUnsafe()) {
@@ -229,7 +231,7 @@ void scanFileTagDefinitions(
     }
 }
 
-class ODRDefinitionVisitor : public clang::RecursiveASTVisitor<ODRDefinitionVisitor> {
+class ODRDefinitionVisitor : public SafeASTVisitor<ODRDefinitionVisitor> {
 public:
     ODRDefinitionVisitor(
         clang::ASTContext& ctx,
@@ -350,7 +352,7 @@ void Rule322::run(const MatchFinder::MatchResult& result) {
     const auto& sm = result.Context->getSourceManager();
 
     UsedEntityCollector used(sm);
-    used.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    used.TraverseAST(*result.Context);
 
     // Collect project FileIDs referenced by top-level declarations in inclusion order.
     std::vector<clang::FileID> projectFiles;
@@ -398,7 +400,7 @@ void Rule322::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

@@ -20,7 +20,7 @@ namespace {
 /// Visits statements belonging directly to a destructor's execution scope to
 /// find explicit `throw` expressions that are not enclosed in a `try-catch`
 /// block or `catch` handler, and not inside a nested lambda or local class.
-class DestructorThrowVisitor : public RecursiveASTVisitor<DestructorThrowVisitor> {
+class DestructorThrowVisitor : public SafeASTVisitor<DestructorThrowVisitor> {
 public:
     std::vector<const CXXThrowExpr*> uncaughtThrows;
 
@@ -38,7 +38,7 @@ public:
         if (tryStmt->getNumHandlers() > 0) {
             return true;
         }
-        return RecursiveASTVisitor<DestructorThrowVisitor>::TraverseCXXTryStmt(tryStmt);
+        return SafeASTVisitor<DestructorThrowVisitor>::TraverseCXXTryStmt(tryStmt);
     }
 
     bool TraverseCXXCatchStmt(CXXCatchStmt*) { return true; }

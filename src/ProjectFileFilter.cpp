@@ -12,7 +12,7 @@ ProjectFileFilter::ProjectFileFilter(const std::string& root)
 std::string ProjectFileFilter::canonicalisePath(const std::string& path) {
     if (path.empty()) return "";
 
-    static std::unordered_map<std::string, std::string> cache;
+    thread_local std::unordered_map<std::string, std::string> cache;
     auto it = cache.find(path);
     if (it != cache.end()) {
         return it->second;
@@ -20,23 +20,33 @@ std::string ProjectFileFilter::canonicalisePath(const std::string& path) {
 
     std::error_code ec;
     std::filesystem::path p(path);
-    p.make_preferred();
-
     std::filesystem::path canon;
     if (std::filesystem::exists(p, ec)) {
         ec.clear();
         canon = std::filesystem::weakly_canonical(p, ec);
         if (ec || canon.empty()) {
             ec.clear();
-            canon = std::filesystem::absolute(p, ec).make_preferred().lexically_normal();
+            canon = std::filesystem::absolute(p, ec).lexically_normal();
         } else {
-            canon = canon.make_preferred().lexically_normal();
+            canon = canon.lexically_normal();
+        }
+    } else if (p.has_parent_path()) {
+        ec.clear();
+        if (p.is_absolute()) {
+            canon = std::filesystem::weakly_canonical(p, ec);
+            if (ec || canon.empty()) {
+                canon = p.lexically_normal();
+            } else {
+                canon = canon.lexically_normal();
+            }
+        } else {
+            canon = p.lexically_normal();
         }
     } else {
         canon = p.lexically_normal();
     }
 
-    std::string result = canon.string();
+    std::string result = canon.make_preferred().string();
 #ifdef _WIN32
     if (result.size() >= 2 && result[1] == ':') {
         result[0] = static_cast<char>(
@@ -55,7 +65,7 @@ std::string ProjectFileFilter::canonicalisePath(const std::string& path) {
 std::string ProjectFileFilter::normalisePath(const std::string& path) {
     if (path.empty()) return "";
 
-    static std::unordered_map<std::string, std::string> normCache;
+    thread_local std::unordered_map<std::string, std::string> normCache;
     auto it = normCache.find(path);
     if (it != normCache.end()) {
         return it->second;
@@ -80,9 +90,107 @@ std::string ProjectFileFilter::normalisePath(const std::string& path) {
     return result;
 }
 
+bool ProjectFileFilter::isExcludedExternalOrThirdPartyPath(const std::string& path) {
+    if (path.empty()) return true;
+    if (path.front() == '<') return true; // <built-in>, <command line>, <scratch space>
+
+    std::string norm = normalisePath(path);
+    if (norm.empty() || norm.front() == '<') return true;
+
+    // Pad with leading and trailing '/' for exact directory segment matching.
+    std::string padded = "/" + norm + "/";
+
+    static const char* const kExcludedSegments[] = {
+        // Compiler builtin & LLVM/Clang internal headers
+        "/lib/clang/",
+        "/llvm/include/",
+        "/clang/include/",
+        // MSVC toolchain directories
+        "/microsoft visual studio/",
+        "/vc/tools/msvc/",
+        "/vc/auxiliary/",
+        "/vc/include/",
+        "/atlmfc/",
+        // Windows SDK directories
+        "/windows kits/",
+        "/microsoft sdks/",
+        "/ucrt/",
+        // Qt installation directories & modules
+        "/qt/",
+        "/qt5/",
+        "/qt6/",
+        "/qtcore/",
+        "/qtgui/",
+        "/qtwidgets/",
+        "/qtnetwork/",
+        "/qtqml/",
+        "/qtquick/",
+        "/qtsql/",
+        "/qtxml/",
+        "/qttest/",
+        "/qtconcurrent/",
+        "/qtmultimedia/",
+        "/qtdbus/",
+        "/qtopengl/",
+        "/qtprintsupport/",
+        "/qtsvg/",
+        "/qtwebsockets/",
+        "/qtserialport/",
+        "/qtpositioning/",
+        "/qtbluetooth/",
+        "/qtwebengine/",
+        "/qtcharts/",
+        "/mkspecs/",
+        "/include/qt/",
+        "/include/qt5/",
+        "/include/qt6/",
+        // Third-party dependencies & package managers
+        "/third_party/",
+        "/thirdparty/",
+        "/3rdparty/",
+        "/3rd_party/",
+        "/external/",
+        "/extern/",
+        "/vendor/",
+        "/vendors/",
+        "/deps/",
+        "/dependencies/",
+        "/vcpkg/",
+        "/vcpkg_installed/",
+        "/conan/",
+        "/.conan/",
+        "/node_modules/",
+        "/boost/",
+        "/googletest/",
+        "/gtest/",
+        "/gmock/",
+        "/catch2/",
+        "/nlohmann/",
+        "/eigen/",
+        "/eigen3/",
+        "/fmt/",
+        "/spdlog/",
+        "/protobuf/",
+        "/abseil/",
+        "/CMakeFiles/",
+        "/cmakefiles/"
+    };
+
+    for (const char* seg : kExcludedSegments) {
+        if (padded.find(seg) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool ProjectFileFilter::isProjectFile(const std::string& filePath) const {
+    if (filePath.empty()) return false;
+    if (isExcludedExternalOrThirdPartyPath(filePath)) {
+        return false;
+    }
     if (root_.empty()) {
-        return true; // Filter disabled.
+        return true; // Root filter disabled; external/third-party check above still applies.
     }
     std::string normalised = normalisePath(filePath);
     // File must start with root path followed by a separator.

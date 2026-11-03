@@ -33,7 +33,7 @@ const VarDecl* extractVarDecl(const Expr* e) {
     return nullptr;
 }
 
-class InitVarCollector : public RecursiveASTVisitor<InitVarCollector> {
+class InitVarCollector : public SafeASTVisitor<InitVarCollector> {
 public:
     bool VisitVarDecl(VarDecl* vd) {
         if (vd && !vd->isImplicit()) {
@@ -54,7 +54,7 @@ public:
     std::unordered_set<const VarDecl*> vars_;
 };
 
-class CondVarCollector : public RecursiveASTVisitor<CondVarCollector> {
+class CondVarCollector : public SafeASTVisitor<CondVarCollector> {
 public:
     bool VisitDeclRefExpr(DeclRefExpr* dre) {
         if (dre) {
@@ -68,7 +68,7 @@ public:
     std::unordered_set<const VarDecl*> vars_;
 };
 
-class ModifiedVarCollector : public RecursiveASTVisitor<ModifiedVarCollector> {
+class ModifiedVarCollector : public SafeASTVisitor<ModifiedVarCollector> {
 public:
     bool VisitUnaryOperator(UnaryOperator* uop) {
         if (uop && uop->isIncrementDecrementOp()) {
@@ -243,7 +243,7 @@ void scanInvalidFunctionForLoops(
     }
 }
 
-class ForLoopCounterVisitor : public RecursiveASTVisitor<ForLoopCounterVisitor> {
+class ForLoopCounterVisitor : public SafeASTVisitor<ForLoopCounterVisitor> {
 public:
     ForLoopCounterVisitor(
         ASTContext& ctx,
@@ -343,7 +343,7 @@ void Rule651::run(const MatchFinder::MatchResult& result) {
         [this](SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

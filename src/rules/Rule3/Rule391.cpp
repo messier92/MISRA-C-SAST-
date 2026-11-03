@@ -146,7 +146,7 @@ std::string extractReturnTypeTokens(const clang::FunctionDecl* fd,
 }
 
 class TypeTokenConsistencyVisitor
-    : public clang::RecursiveASTVisitor<TypeTokenConsistencyVisitor> {
+    : public SafeASTVisitor<TypeTokenConsistencyVisitor> {
 public:
     TypeTokenConsistencyVisitor(
         clang::ASTContext& ctx,
@@ -276,7 +276,7 @@ void Rule391::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

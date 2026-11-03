@@ -54,7 +54,7 @@ bool isRelevantDecl(const clang::NamedDecl* d,
 }
 
 class TypeObjectSameScopeVisitor
-    : public clang::RecursiveASTVisitor<TypeObjectSameScopeVisitor> {
+    : public SafeASTVisitor<TypeObjectSameScopeVisitor> {
 public:
     TypeObjectSameScopeVisitor(
         clang::ASTContext& ctx,
@@ -138,7 +138,7 @@ void Rule2106::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

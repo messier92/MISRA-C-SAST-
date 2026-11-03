@@ -1,6 +1,8 @@
 #ifndef MISRA_PREPROCESSOR_TRACKER_H
 #define MISRA_PREPROCESSOR_TRACKER_H
 
+#include "Rule.h"
+
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/MacroInfo.h"
@@ -40,7 +42,7 @@ struct PreprocessorTUData {
     }
 
     static PreprocessorTUData& instance() {
-        static PreprocessorTUData data;
+        thread_local PreprocessorTUData data;
         return data;
     }
 };
@@ -50,7 +52,9 @@ struct PreprocessorTUData {
 /// macro definitions, and visited files) for MISRA Rule 16 checkers.
 class MisraPPCallbacks : public clang::PPCallbacks {
 public:
-    explicit MisraPPCallbacks(clang::SourceManager& sm) : sm_(sm) {
+    explicit MisraPPCallbacks(clang::SourceManager& sm,
+                              const ViolationStore* store = nullptr)
+        : sm_(sm), store_(store) {
         PreprocessorTUData::instance().clear();
     }
 
@@ -65,7 +69,7 @@ public:
 
         if (FileType == clang::SrcMgr::C_User) {
             clang::SourceLocation spell = sm_.getSpellingLoc(Loc);
-            if (spell.isValid() && !sm_.isInSystemHeader(spell)) {
+            if (Rule::isProjectLocation(spell, sm_, store_)) {
                 PreprocessorTUData::instance().visitedFiles.insert(enteredFid);
             }
         }
@@ -75,7 +79,7 @@ public:
         clang::SourceLocation incLoc = sm_.getIncludeLoc(enteredFid);
         if (incLoc.isValid()) {
             clang::SourceLocation spellInc = sm_.getSpellingLoc(incLoc);
-            if (spellInc.isValid() && !sm_.isInSystemHeader(spellInc)) {
+            if (Rule::isProjectLocation(spellInc, sm_, store_)) {
                 clang::FileID includingFid = sm_.getFileID(spellInc);
                 if (includingFid.isValid()) {
                     PreprocessorTUData::instance().visitedFiles.insert(includingFid);
@@ -90,7 +94,8 @@ public:
 
     void SourceRangeSkipped(clang::SourceRange Range,
                             clang::SourceLocation /*EndifLoc*/) override {
-        if (Range.isValid()) {
+        if (Range.isValid() &&
+            Rule::isProjectLocation(Range.getBegin(), sm_, store_)) {
             PreprocessorTUData::instance().skippedRanges.push_back(Range);
         }
     }
@@ -102,9 +107,7 @@ public:
         if (!MI || !MI->isFunctionLike()) return;
 
         clang::SourceLocation defLoc = sm_.getSpellingLoc(MacroNameTok.getLocation());
-        if (defLoc.isInvalid() || sm_.isInSystemHeader(defLoc) ||
-            sm_.isWrittenInBuiltinFile(defLoc) ||
-            sm_.isWrittenInCommandLineFile(defLoc)) {
+        if (!Rule::isProjectLocation(defLoc, sm_, store_)) {
             return;
         }
 
@@ -157,6 +160,7 @@ public:
 
 private:
     clang::SourceManager& sm_;
+    const ViolationStore* store_ = nullptr;
 };
 
 } // namespace misra

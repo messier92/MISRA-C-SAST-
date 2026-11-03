@@ -18,8 +18,8 @@ namespace {
 
 /// Check whether an expression has `CXXThisExpr` at the root of its member/object
 /// access chain.
-bool hasThisBase(const Expr* expr) {
-    if (!expr) return false;
+bool hasThisBase(const Expr* expr, unsigned depth = 0) {
+    if (!expr || depth >= 128) return false;
     expr = expr->IgnoreParenCasts();
 
     if (llvm::isa<CXXThisExpr>(expr)) {
@@ -28,16 +28,16 @@ bool hasThisBase(const Expr* expr) {
     if (const auto* me = llvm::dyn_cast<MemberExpr>(expr)) {
         if (llvm::isa<FieldDecl>(me->getMemberDecl()) ||
             llvm::isa<IndirectFieldDecl>(me->getMemberDecl())) {
-            return hasThisBase(me->getBase());
+            return hasThisBase(me->getBase(), depth + 1);
         }
         return false;
     }
     if (const auto* ase = llvm::dyn_cast<ArraySubscriptExpr>(expr)) {
-        return hasThisBase(ase->getBase());
+        return hasThisBase(ase->getBase(), depth + 1);
     }
     if (const auto* uo = llvm::dyn_cast<UnaryOperator>(expr)) {
         if (uo->getOpcode() == UO_Deref || uo->getOpcode() == UO_AddrOf) {
-            return hasThisBase(uo->getSubExpr());
+            return hasThisBase(uo->getSubExpr(), depth + 1);
         }
     }
     return false;
@@ -46,18 +46,18 @@ bool hasThisBase(const Expr* expr) {
 /// Determine whether a returned expression refers to a non-static data member
 /// belonging to `this` (excluding static data members, local variables,
 /// parameters, and external objects).
-bool refersToNonStaticClassData(const Expr* expr) {
-    if (!expr) return false;
+bool refersToNonStaticClassData(const Expr* expr, unsigned depth = 0) {
+    if (!expr || depth >= 128) return false;
     expr = expr->IgnoreParenCasts();
 
     if (const auto* ewc = llvm::dyn_cast<ExprWithCleanups>(expr)) {
-        return refersToNonStaticClassData(ewc->getSubExpr());
+        return refersToNonStaticClassData(ewc->getSubExpr(), depth + 1);
     }
     if (const auto* bte = llvm::dyn_cast<CXXBindTemporaryExpr>(expr)) {
-        return refersToNonStaticClassData(bte->getSubExpr());
+        return refersToNonStaticClassData(bte->getSubExpr(), depth + 1);
     }
     if (const auto* mte = llvm::dyn_cast<MaterializeTemporaryExpr>(expr)) {
-        return refersToNonStaticClassData(mte->getSubExpr());
+        return refersToNonStaticClassData(mte->getSubExpr(), depth + 1);
     }
 
     if (const auto* me = llvm::dyn_cast<MemberExpr>(expr)) {
@@ -65,34 +65,34 @@ bool refersToNonStaticClassData(const Expr* expr) {
         // non-static data members are FieldDecl / IndirectFieldDecl.
         if (llvm::isa<FieldDecl>(me->getMemberDecl()) ||
             llvm::isa<IndirectFieldDecl>(me->getMemberDecl())) {
-            return hasThisBase(me->getBase());
+            return hasThisBase(me->getBase(), depth + 1);
         }
         return false;
     }
 
     if (const auto* uo = llvm::dyn_cast<UnaryOperator>(expr)) {
         if (uo->getOpcode() == UO_AddrOf || uo->getOpcode() == UO_Deref) {
-            return refersToNonStaticClassData(uo->getSubExpr());
+            return refersToNonStaticClassData(uo->getSubExpr(), depth + 1);
         }
     }
 
     if (const auto* ase = llvm::dyn_cast<ArraySubscriptExpr>(expr)) {
-        return refersToNonStaticClassData(ase->getBase());
+        return refersToNonStaticClassData(ase->getBase(), depth + 1);
     }
 
     if (const auto* bo = llvm::dyn_cast<BinaryOperator>(expr)) {
         if (bo->getOpcode() == BO_Add || bo->getOpcode() == BO_Sub) {
-            return refersToNonStaticClassData(bo->getLHS()) ||
-                   refersToNonStaticClassData(bo->getRHS());
+            return refersToNonStaticClassData(bo->getLHS(), depth + 1) ||
+                   refersToNonStaticClassData(bo->getRHS(), depth + 1);
         }
         if (bo->getOpcode() == BO_Comma) {
-            return refersToNonStaticClassData(bo->getRHS());
+            return refersToNonStaticClassData(bo->getRHS(), depth + 1);
         }
     }
 
     if (const auto* co = llvm::dyn_cast<ConditionalOperator>(expr)) {
-        return refersToNonStaticClassData(co->getTrueExpr()) ||
-               refersToNonStaticClassData(co->getFalseExpr());
+        return refersToNonStaticClassData(co->getTrueExpr(), depth + 1) ||
+               refersToNonStaticClassData(co->getFalseExpr(), depth + 1);
     }
 
     return false;
@@ -100,7 +100,7 @@ bool refersToNonStaticClassData(const Expr* expr) {
 
 /// Collect return statements directly belonging to a member function body,
 /// stopping at nested lambdas or local classes.
-class ReturnStmtCollector : public RecursiveASTVisitor<ReturnStmtCollector> {
+class ReturnStmtCollector : public SafeASTVisitor<ReturnStmtCollector> {
 public:
     std::vector<const ReturnStmt*> returns;
 

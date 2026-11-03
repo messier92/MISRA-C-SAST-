@@ -55,7 +55,8 @@ bool isCandidateDecl(const clang::NamedDecl* d,
 std::string getNamespaceQualification(const clang::Decl* d) {
     std::vector<std::string> parts;
     const clang::DeclContext* dc = d ? d->getDeclContext() : nullptr;
-    while (dc) {
+    unsigned hops = 0;
+    while (dc && ++hops <= 128) {
         if (const auto* ns = llvm::dyn_cast<clang::NamespaceDecl>(dc)) {
             if (!ns->isAnonymousNamespace() && ns->getIdentifier()) {
                 parts.push_back(ns->getName().str());
@@ -72,7 +73,7 @@ std::string getNamespaceQualification(const clang::Decl* d) {
 }
 
 class TypedefUniquenessVisitor
-    : public clang::RecursiveASTVisitor<TypedefUniquenessVisitor> {
+    : public SafeASTVisitor<TypedefUniquenessVisitor> {
 public:
     TypedefUniquenessVisitor(
         clang::ASTContext& ctx,
@@ -136,7 +137,7 @@ void Rule2103::run(const MatchFinder::MatchResult& result) {
         [this](clang::SourceLocation loc, const std::string& msg) {
             report(loc, msg);
         });
-    visitor.TraverseDecl(const_cast<clang::TranslationUnitDecl*>(tu));
+    visitor.TraverseAST(*result.Context);
 }
 
 } // namespace misra

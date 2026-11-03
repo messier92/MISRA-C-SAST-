@@ -100,15 +100,21 @@ bool isExcludedFunction(const FunctionDecl* fd) {
     return false;
 }
 
+constexpr unsigned kMaxSideEffectCallDepth = 16;
+
 bool functionHasExternalSideEffects(
     const FunctionDecl* func,
-    std::unordered_set<const FunctionDecl*>& visited);
+    std::unordered_set<const FunctionDecl*>& visited,
+    unsigned callDepth = 0);
 
-class SideEffectFinder : public RecursiveASTVisitor<SideEffectFinder> {
+class SideEffectFinder : public SafeASTVisitor<SideEffectFinder> {
 public:
     SideEffectFinder(const FunctionDecl* func,
-                     std::unordered_set<const FunctionDecl*>& visited)
-        : func_(func->getCanonicalDecl()), visited_(visited) {}
+                     std::unordered_set<const FunctionDecl*>& visited,
+                     unsigned callDepth)
+        : func_(func->getCanonicalDecl()),
+          visited_(visited),
+          callDepth_(callDepth) {}
 
     bool hasSideEffects() const { return foundSideEffect_; }
 
@@ -270,8 +276,14 @@ public:
             return true;
         }
 
+        if (callee->isTemplateInstantiation()) {
+            foundSideEffect_ = true;
+            return false;
+        }
+
         if (callee->hasBody()) {
-            if (functionHasExternalSideEffects(callee, visited_)) {
+            if (callDepth_ + 1 >= kMaxSideEffectCallDepth ||
+                functionHasExternalSideEffects(callee, visited_, callDepth_ + 1)) {
                 foundSideEffect_ = true;
                 return false;
             }
@@ -305,17 +317,20 @@ private:
 
     const FunctionDecl* func_;
     std::unordered_set<const FunctionDecl*>& visited_;
+    unsigned callDepth_ = 0;
     bool foundSideEffect_ = false;
 };
 
 bool functionHasExternalSideEffects(
     const FunctionDecl* func,
-    std::unordered_set<const FunctionDecl*>& visited) {
+    std::unordered_set<const FunctionDecl*>& visited,
+    unsigned callDepth) {
     if (!func || !func->hasBody()) return true;
+    if (callDepth >= kMaxSideEffectCallDepth) return true;
     const FunctionDecl* canon = func->getCanonicalDecl();
-    visited.insert(canon);
+    if (!visited.insert(canon).second) return false;
 
-    SideEffectFinder finder(func, visited);
+    SideEffectFinder finder(func, visited, callDepth);
     finder.TraverseStmt(func->getBody());
     return finder.hasSideEffects();
 }

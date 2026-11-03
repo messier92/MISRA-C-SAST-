@@ -21,7 +21,7 @@ namespace {
 /// Collects `ReturnStmt` nodes belonging directly to the inspected function
 /// without descending into nested `LambdaExpr` or local class declarations.
 class FunctionReturnCollector
-    : public RecursiveASTVisitor<FunctionReturnCollector> {
+    : public SafeASTVisitor<FunctionReturnCollector> {
 public:
     bool TraverseLambdaExpr(LambdaExpr*) {
         return true;
@@ -52,13 +52,13 @@ public:
         return true;
     }
 
-    static bool exprContainsAssignment(const Stmt* s) {
-        if (!s) return false;
+    static bool exprContainsAssignment(const Stmt* s, unsigned depth = 0) {
+        if (!s || depth >= 128) return false;
         if (const auto* bop = dyn_cast<BinaryOperator>(s)) {
             if (bop->isAssignmentOp()) return true;
         }
         for (const Stmt* child : s->children()) {
-            if (exprContainsAssignment(child)) return true;
+            if (exprContainsAssignment(child, depth + 1)) return true;
         }
         return false;
     }

@@ -5,8 +5,10 @@
 
 #include <cstdint>
 #include <map>
+#include <mutex>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace misra {
@@ -26,6 +28,7 @@ struct Violation {
 
 /// Collects violations from all rules and all translation units,
 /// then prints a sorted report to the console and writes it to a .txt file.
+/// Thread-safe for concurrent per-file analysis and incremental crash-proof reporting.
 class ViolationStore {
 public:
     /// @param projectRoot  Root directory for the ProjectFileFilter.
@@ -34,7 +37,7 @@ public:
 
     // ── Recording ──────────────────────────────────────────────
 
-    /// Add a violation. Duplicates (same file/line/col/rule) are silently ignored.
+    /// Add a violation. Duplicates (same file/line/rule) are collapsed.
     void addViolation(const Violation& v);
 
     /// Register a rule ID so it appears in the summary even with 0 violations.
@@ -42,6 +45,9 @@ public:
 
     /// Set the list of scanned files (shown at the top of the report).
     void setScannedFiles(const std::vector<std::string>& files);
+
+    /// Record a file that failed, crashed, or timed out during analysis.
+    void recordFileFailure(const std::string& file, const std::string& reason);
 
     /// Set an optional tag for the report (e.g. timestamp, commit hash).
     void setReportTag(const std::string& tag);
@@ -59,6 +65,10 @@ public:
     /// Returns true if `lhs` takes reporting precedence over `rhs` on the same line.
     static bool hasHigherPrecedence(const Violation& lhs, const Violation& rhs);
 
+    /// Atomically write a crash-proof snapshot report of all violations
+    /// collected so far (with precedence applied on a snapshot copy) to `outputPath`.
+    void writeSnapshotReport(const std::string& outputPath) const;
+
     /// Apply precedence, sort violations, print to console, and write to `outputPath`.
     /// Returns the total number of violations.
     size_t finalize(const std::string& outputPath = "misra_output.txt");
@@ -66,17 +76,30 @@ public:
     // ── Accessors ──────────────────────────────────────────────
 
     const std::vector<Violation>& getViolations() const { return violations_; }
+    const std::vector<std::pair<std::string, std::string>>& getFailedFiles() const {
+        return failedFiles_;
+    }
     const ProjectFileFilter& getFilter() const { return filter_; }
 
 private:
-    /// Print the full report to the given stream.
-    void printReport(std::ostream& os) const;
+    /// Apply precedence and sort on a vector of violations in place.
+    static void resolvePrecedenceOnVector(std::vector<Violation>& vec);
 
-    ProjectFileFilter          filter_;
-    std::vector<Violation>     violations_;
-    std::set<std::string>      registeredRules_;
-    std::vector<std::string>   scannedFiles_;
-    std::string                reportTag_;
+    /// Print the full report for `violations` to the given stream.
+    void printReportFor(std::ostream& os,
+                        const std::vector<Violation>& violations) const;
+
+    /// Write formatted report content atomically to `outputPath`.
+    static bool writeFileAtomically(const std::string& outputPath,
+                                    const std::string& content);
+
+    mutable std::mutex                               mutex_;
+    ProjectFileFilter                                filter_;
+    std::vector<Violation>                           violations_;
+    std::set<std::string>                            registeredRules_;
+    std::vector<std::string>                         scannedFiles_;
+    std::vector<std::pair<std::string, std::string>> failedFiles_;
+    std::string                                      reportTag_;
 };
 
 } // namespace misra

@@ -1,34 +1,24 @@
-﻿================================================================
+================================================================
   MISRA C++:2008 Static Analysis Report
-  Tag: 2026-11-03 07:31:18
+  Tag: 2026-11-03 23:44:03
 ================================================================
 
 Scanned files (4):
-  C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.cpp
-  C:\Users\HanLo\Projects\misra\tests\Rule3\Rule322.cpp
-  C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp
-  C:\Users\HanLo\Projects\misra\tests\Rule3\Rule391.cpp
+  C:\Users\HanLo\Projects\misra\tests\Rule6\Rule621.cpp
+  C:\Users\HanLo\Projects\misra\tests\Rule6\Rule645.cpp
+  C:\Users\HanLo\Projects\misra\tests\Rule6\Rule651.cpp
+  C:\Users\HanLo\Projects\misra\tests\Rule6\Rule665.cpp
 
-Violations (9):
+Violations (4):
 ------------------------------------------------------------------------
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:15:6  [MISRA-3-1-1]  Function 'F3' defined or declared static in a header file violates the One Definition Rule [MISRA-3-1-1]
-    | void F3()         //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:28:14  [MISRA-3-1-1]  Variable 'a' defined in a header file violates the One Definition Rule [MISRA-3-1-1]
-    | std::int32_t a;                       //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:36:25  [MISRA-3-1-1]  Variable 'f' defined in a header file violates the One Definition Rule [MISRA-3-1-1]
-    | static std::int32_t f;                 //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule311.h:37:17  [MISRA-3-1-1]  Function 'F6' defined or declared static in a header file violates the One Definition Rule [MISRA-3-1-1]
-    | static void F6() noexcept;             //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule322.cpp:15:1  [MISRA-3-2-2]  Multiple definitions of 'Packet' differ by at least one token [MISRA-3-2-2]
-    | }; //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp:6:12  [MISRA-3-2-3]  External object 'systemStatus' is declared in multiple files [MISRA-3-2-3]
-    | extern int systemStatus; //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp:8:21  [MISRA-3-2-3]  External object 'messageCount' is declared in multiple files [MISRA-3-2-3]
-    | extern unsigned int messageCount; //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule323.cpp:12:16  [MISRA-3-2-3]  External object 'Diagnostics::errorCode' is declared in multiple files [MISRA-3-2-3]
-    | extern int errorCode; //Noncompliant
-C:\Users\HanLo\Projects\misra\tests\Rule3\Rule391.cpp:9:15  [MISRA-3-9-1]  Type of object 'map' ('intptr') is not token-for-token identical to previous declaration ('int *') [MISRA-3-9-1]
-    | extern intptr map; //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule621.cpp:16:15  [MISRA-6-2-1]  Assignment operator used in a sub-expression [MISRA-6-2-1]
+    | if ((x = y) == 0)            //Noncompliant
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule645.cpp:12:5  [MISRA-6-4-5]  Non-empty switch-clause does not terminate with an unconditional break or throw statement [MISRA-6-4-5]
+    | switch (x) { //Noncompliant error shows here
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule651.cpp:20:2  [MISRA-6-5-1]  For loop shall contain a single loop-counter which shall not have floating type [MISRA-6-5-1]
+    | for (int i = 0; i >= x; i = x++)   // Non-compliant
+C:\Users\HanLo\Projects\misra\tests\Rule6\Rule651.cpp:30:2  [MISRA-6-5-1]  For loop shall contain a single loop-counter which shall not have floating type [MISRA-6-5-1]
+    | for (float x = 0.1f; x <= 1.0f; x += 0.1f) {   //Noncompliant
 ------------------------------------------------------------------------
 
 Summary by rule:
@@ -50,18 +40,18 @@ Summary by rule:
   MISRA-2-10-3        0 violations
   MISRA-2-10-4        0 violations
   MISRA-2-10-6        0 violations
-  MISRA-3-1-1         4 violations
-  MISRA-3-2-2         1 violation
-  MISRA-3-2-3         3 violations
-  MISRA-3-9-1         1 violation
+  MISRA-3-1-1         0 violations
+  MISRA-3-2-2         0 violations
+  MISRA-3-2-3         0 violations
+  MISRA-3-9-1         0 violations
   MISRA-5-0-4         0 violations
   MISRA-5-0-6         0 violations
   MISRA-5-0-8         0 violations
   MISRA-5-2-4         0 violations
   MISRA-5-3-1         0 violations
-  MISRA-6-2-1         0 violations
-  MISRA-6-4-5         0 violations
-  MISRA-6-5-1         0 violations
+  MISRA-6-2-1         1 violation
+  MISRA-6-4-5         1 violation
+  MISRA-6-5-1         2 violations
   MISRA-6-6-5         0 violations
   MISRA-7-1-1         0 violations
   MISRA-7-3-1         0 violations
@@ -69,5 +59,5 @@ Summary by rule:
   MISRA-9-3-3         0 violations
   MISRA-9-5-1         0 violations
 
-  Total: 9 violations
+  Total: 4 violations
 ================================================================

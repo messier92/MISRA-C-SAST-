@@ -69,7 +69,8 @@ bool isDiscardedInStmt(const Stmt* parent, const Stmt* child) {
 
 bool isInImplicitOrInstantiatedFunction(const Stmt* s, ASTContext& ctx) {
     DynTypedNodeList parents = ctx.getParents(*s);
-    while (!parents.empty()) {
+    unsigned hops = 0;
+    while (!parents.empty() && ++hops <= 256) {
         const DynTypedNode& node = parents[0];
         if (const auto* fd = node.get<FunctionDecl>()) {
             return fd->isImplicit() || fd->isTemplateInstantiation();
@@ -117,7 +118,8 @@ void Rule017::run(const MatchFinder::MatchResult& result) {
     if (isInImplicitOrInstantiatedFunction(call, ctx)) return;
 
     const Stmt* cur = call;
-    while (cur) {
+    unsigned hops = 0;
+    while (cur && ++hops <= 256) {
         DynTypedNodeList parents = ctx.getParents(*cur);
         if (parents.empty()) break;
 

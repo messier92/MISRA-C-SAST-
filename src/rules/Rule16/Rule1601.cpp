@@ -21,7 +21,7 @@ namespace misra {
 namespace {
 
 /// Collects source ranges of `extern "C"` linkage specification blocks.
-class ExternCCollector : public RecursiveASTVisitor<ExternCCollector> {
+class ExternCCollector : public SafeASTVisitor<ExternCCollector> {
 public:
     std::vector<SourceRange> ranges;
 
@@ -176,7 +176,7 @@ void Rule1601::run(const MatchFinder::MatchResult& result) {
     if (mainCount > 1) return;
 
     ExternCCollector externC;
-    externC.TraverseDecl(const_cast<TranslationUnitDecl*>(tu));
+    externC.TraverseAST(*result.Context);
 
     std::set<FileID> filesToCheck = ppData.visitedFiles;
     FileID mainFid = sm.getMainFileID();
