@@ -9,6 +9,7 @@
 #include "clang/AST/Stmt.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Lex/Lexer.h"
 
 #include <string>
 #include <unordered_set>
@@ -302,6 +303,76 @@ bool shadowsOuterVariable(const VarDecl* vd) {
     return false;
 }
 
+/// Checks whether a valid local variable `vd` (whose AST references were
+/// dropped by Clang due to `emit` or unresolved Qt types) is read and/or
+/// modified in its enclosing function body text after its declaration line.
+void scanFunctionTextForLocalVarUsage(const VarDecl* vd,
+                                      const FunctionDecl* func,
+                                      const SourceManager& sm,
+                                      const LangOptions& langOpts,
+                                      bool& outRead,
+                                      bool& outModified) {
+    outRead = false;
+    outModified = false;
+    if (!vd || !func || !func->hasBody() || vd->getName().empty()) return;
+
+    Stmt* body = func->getBody();
+    SourceLocation declLoc = sm.getSpellingLoc(vd->getLocation());
+    SourceLocation bodyEnd = sm.getSpellingLoc(body->getEndLoc());
+    if (declLoc.isInvalid() || bodyEnd.isInvalid()) return;
+
+    FileID fid = sm.getFileID(declLoc);
+    if (fid != sm.getFileID(bodyEnd)) return;
+
+    unsigned declLine = sm.getSpellingLineNumber(declLoc);
+    SourceLocation scanStart = sm.translateLineCol(fid, declLine + 1, 1);
+    if (scanStart.isInvalid() || !sm.isBeforeInTranslationUnit(scanStart, bodyEnd)) {
+        return;
+    }
+
+    bool invalid = false;
+    llvm::StringRef buffer = sm.getBufferData(fid, &invalid);
+    if (invalid) return;
+
+    const char* startPtr = sm.getCharacterData(scanStart, &invalid);
+    if (invalid || !startPtr) return;
+    const char* endPtr = sm.getCharacterData(bodyEnd, &invalid);
+    if (invalid || !endPtr || startPtr >= endPtr) return;
+
+    Lexer lexer(scanStart, langOpts, buffer.begin(), startPtr, endPtr);
+    lexer.SetCommentRetentionState(false);
+
+    llvm::StringRef targetName = vd->getName();
+    Token prevTok;
+    prevTok.startToken();
+    Token tok;
+    while (!lexer.LexFromRawLexer(tok)) {
+        if (tok.is(tok::raw_identifier) && tok.getRawIdentifier() == targetName) {
+            if (prevTok.isOneOf(tok::plusplus, tok::minusminus, tok::amp,
+                                tok::greatergreater)) {
+                outModified = true;
+            }
+            Token nextTok;
+            if (!lexer.LexFromRawLexer(nextTok)) {
+                if (nextTok.isOneOf(tok::equal, tok::plusequal, tok::minusequal,
+                                    tok::starequal, tok::slashequal, tok::percentequal,
+                                    tok::ampequal, tok::pipeequal, tok::caretequal,
+                                    tok::lesslessequal, tok::greatergreaterequal,
+                                    tok::plusplus, tok::minusminus)) {
+                    outModified = true;
+                } else {
+                    outRead = true;
+                }
+                prevTok = nextTok;
+                continue;
+            } else {
+                outRead = true;
+            }
+        }
+        prevTok = tok;
+    }
+}
+
 } // namespace
 
 Rule711::Rule711()
@@ -316,7 +387,8 @@ void Rule711::registerMatchers(MatchFinder& finder) {
 
 void Rule711::run(const MatchFinder::MatchResult& result) {
     const auto* func = result.Nodes.getNodeAs<FunctionDecl>("func");
-    if (!func || !func->hasBody() || func->isInvalidDecl()) return;
+    if (!func || !func->hasBody()) return;
+    if (func->isInvalidDecl() && func->getName() == "main") return;
     if (func->getDescribedFunctionTemplate() || func->isTemplateInstantiation() ||
         func->isDependentContext()) {
         return;
@@ -343,8 +415,8 @@ void Rule711::run(const MatchFinder::MatchResult& result) {
 
     // 1. Check function parameters.
     for (const ParmVarDecl* parm : func->parameters()) {
-        if (!parm || parm->isImplicit() || !parm->getIdentifier() ||
-            parm->getName().empty()) {
+        if (!parm || parm->isImplicit() || parm->isInvalidDecl() ||
+            !parm->getIdentifier() || parm->getName().empty()) {
             continue;
         }
 
@@ -362,7 +434,7 @@ void Rule711::run(const MatchFinder::MatchResult& result) {
 
     // 2. Check local variables.
     for (const VarDecl* vd : analyzer.localVars_) {
-        if (!vd || vd->getName().empty()) continue;
+        if (!vd || vd->isInvalidDecl() || vd->getName().empty()) continue;
 
         QualType qt = vd->getType();
         if (qt.isNull() || qt->isDependentType() || qt->isReferenceType() ||
@@ -380,6 +452,16 @@ void Rule711::run(const MatchFinder::MatchResult& result) {
         if (!vd->hasInit()) continue;
 
         const VarDecl* canon = vd->getCanonicalDecl();
+        if (analyzer.readVars_.count(canon) == 0 &&
+            analyzer.modifiedVars_.count(canon) == 0) {
+            bool textRead = false;
+            bool textMod  = false;
+            scanFunctionTextForLocalVarUsage(
+                vd, func, sm, result.Context->getLangOpts(), textRead, textMod);
+            if (textRead) analyzer.readVars_.insert(canon);
+            if (textMod)  analyzer.modifiedVars_.insert(canon);
+        }
+
         // Unused variables that are never read are covered by Rule 0-1-3 / 0-1-6.
         if (analyzer.readVars_.count(canon) == 0) continue;
 

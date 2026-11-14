@@ -16,6 +16,54 @@ namespace misra {
 
 namespace {
 
+bool isIdentChar2101(char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+}
+
+bool isEmitPseudoVarDecl(const clang::VarDecl* vd, const clang::SourceManager& sm) {
+    if (!vd || !vd->isInvalidDecl() || vd->getName().empty()) return false;
+    clang::SourceLocation spellingLoc = sm.getSpellingLoc(vd->getLocation());
+    if (spellingLoc.isInvalid()) return false;
+    clang::FileID fid = sm.getFileID(spellingLoc);
+    unsigned lineNo = sm.getSpellingLineNumber(spellingLoc);
+    clang::SourceLocation lineStart = sm.translateLineCol(fid, lineNo, 1);
+    if (lineStart.isInvalid()) return false;
+    bool invalid = false;
+    const char* buf = sm.getCharacterData(lineStart, &invalid);
+    if (invalid || !buf) return false;
+    const char* p = buf;
+    while (*p && *p != '\n' && *p != '\r') ++p;
+    std::string lineText(buf, p);
+
+    size_t n = lineText.size();
+    for (size_t i = 0; i < n;) {
+        if (isIdentChar2101(lineText[i]) && !std::isdigit(static_cast<unsigned char>(lineText[i]))) {
+            size_t start = i;
+            while (i < n && isIdentChar2101(lineText[i])) ++i;
+            llvm::StringRef kw(lineText.data() + start, i - start);
+            if (kw == "emit" || kw == "Q_EMIT") {
+                size_t j = i;
+                while (j < n && std::isspace(static_cast<unsigned char>(lineText[j]))) ++j;
+                if (j == i) continue;
+                while (j < n && isIdentChar2101(lineText[j])) {
+                    size_t idStart = j;
+                    while (j < n && isIdentChar2101(lineText[j])) ++j;
+                    llvm::StringRef ident(lineText.data() + idStart, j - idStart);
+                    size_t k = j;
+                    while (k < n && std::isspace(static_cast<unsigned char>(lineText[k]))) ++k;
+                    if (k < n && lineText[k] == '(') {
+                        return ident == vd->getName();
+                    }
+                    break;
+                }
+            }
+        } else {
+            ++i;
+        }
+    }
+    return false;
+}
+
 bool isTrackedDecl(const clang::NamedDecl* d,
                    clang::ASTContext& ctx,
                    const ViolationStore* store) {
@@ -40,6 +88,9 @@ bool isTrackedDecl(const clang::NamedDecl* d,
     }
 
     const auto& sm = ctx.getSourceManager();
+    if (const auto* vd = llvm::dyn_cast<clang::VarDecl>(d)) {
+        if (isEmitPseudoVarDecl(vd, sm)) return false;
+    }
     clang::SourceLocation spellingLoc = sm.getSpellingLoc(d->getLocation());
     if (spellingLoc.isInvalid() || sm.isInSystemHeader(spellingLoc)) return false;
 

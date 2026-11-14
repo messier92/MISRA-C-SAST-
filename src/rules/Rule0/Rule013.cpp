@@ -5,7 +5,9 @@
 #include "clang/AST/Expr.h"
 #include "clang/AST/ExprCXX.h"
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/Lex/Lexer.h"
 
+#include <cctype>
 #include <unordered_set>
 #include <vector>
 
@@ -15,6 +17,130 @@ using namespace clang::ast_matchers;
 namespace misra {
 
 namespace {
+
+bool isIdentChar013(char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+}
+
+/// Returns true if the source line of `vd` is a Qt signal emission
+/// (`emit signalName(...)` or `Q_EMIT signalName(...)`) where `signalName`
+/// matches `vd->getName()`.
+bool isEmitSignalVarDecl(const VarDecl* vd, const SourceManager& sm) {
+    if (!vd || vd->getName().empty()) return false;
+    SourceLocation spellingLoc = sm.getSpellingLoc(vd->getLocation());
+    if (spellingLoc.isInvalid()) return false;
+
+    FileID fid = sm.getFileID(spellingLoc);
+    unsigned lineNo = sm.getSpellingLineNumber(spellingLoc);
+    SourceLocation lineStart = sm.translateLineCol(fid, lineNo, 1);
+    if (lineStart.isInvalid()) return false;
+
+    bool invalid = false;
+    const char* buf = sm.getCharacterData(lineStart, &invalid);
+    if (invalid || !buf) return false;
+
+    const char* p = buf;
+    while (*p && *p != '\n' && *p != '\r') ++p;
+    std::string lineText(buf, p);
+
+    size_t n = lineText.size();
+    for (size_t i = 0; i < n;) {
+        if (isIdentChar013(lineText[i]) && !std::isdigit(static_cast<unsigned char>(lineText[i]))) {
+            size_t start = i;
+            while (i < n && isIdentChar013(lineText[i])) ++i;
+            llvm::StringRef kw(lineText.data() + start, i - start);
+            if (kw == "emit" || kw == "Q_EMIT") {
+                size_t j = i;
+                while (j < n && std::isspace(static_cast<unsigned char>(lineText[j]))) ++j;
+                if (j == i) continue;
+                while (j < n && isIdentChar013(lineText[j])) {
+                    size_t idStart = j;
+                    while (j < n && isIdentChar013(lineText[j])) ++j;
+                    llvm::StringRef ident(lineText.data() + idStart, j - idStart);
+                    size_t k = j;
+                    while (k < n && std::isspace(static_cast<unsigned char>(lineText[k]))) ++k;
+                    if (k < n && lineText[k] == '(') {
+                        return ident == vd->getName();
+                    }
+                    break;
+                }
+            }
+        } else {
+            ++i;
+        }
+    }
+    return false;
+}
+
+/// Checks whether a local variable `vd` (whose AST references may have been
+/// dropped by Clang due to `emit` or unresolved Qt types) appears as a read
+/// identifier token in its enclosing function body after its declaration line.
+bool isLocalVarReadInFunctionText(const VarDecl* vd,
+                                  const SourceManager& sm,
+                                  const LangOptions& langOpts) {
+    if (!vd || !vd->hasLocalStorage() || vd->getName().empty()) return false;
+    if (isEmitSignalVarDecl(vd, sm)) return false;
+
+    const auto* fd = dyn_cast_or_null<FunctionDecl>(vd->getDeclContext());
+    if (!fd || !fd->hasBody()) return false;
+
+    Stmt* body = fd->getBody();
+    SourceLocation declLoc = sm.getSpellingLoc(vd->getLocation());
+    SourceLocation bodyEnd = sm.getSpellingLoc(body->getEndLoc());
+    if (declLoc.isInvalid() || bodyEnd.isInvalid()) return false;
+
+    FileID fid = sm.getFileID(declLoc);
+    if (fid != sm.getFileID(bodyEnd)) return false;
+
+    unsigned declLine = sm.getSpellingLineNumber(declLoc);
+    SourceLocation scanStart = sm.translateLineCol(fid, declLine + 1, 1);
+    if (scanStart.isInvalid() || !sm.isBeforeInTranslationUnit(scanStart, bodyEnd)) {
+        return false;
+    }
+
+    bool invalid = false;
+    llvm::StringRef buffer = sm.getBufferData(fid, &invalid);
+    if (invalid) return false;
+
+    const char* startPtr = sm.getCharacterData(scanStart, &invalid);
+    if (invalid || !startPtr) return false;
+    const char* endPtr = sm.getCharacterData(bodyEnd, &invalid);
+    if (invalid || !endPtr || startPtr >= endPtr) return false;
+
+    Lexer lexer(scanStart, langOpts, buffer.begin(), startPtr, endPtr);
+    lexer.SetCommentRetentionState(false);
+
+    llvm::StringRef targetName = vd->getName();
+    Token tok;
+    while (!lexer.LexFromRawLexer(tok)) {
+        if (tok.is(tok::raw_identifier) && tok.getRawIdentifier() == targetName) {
+            Token nextTok;
+            if (!lexer.LexFromRawLexer(nextTok)) {
+                if (nextTok.is(tok::equal)) {
+                    // Pure assignment `var = ...`; keep scanning for a read.
+                    continue;
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+/// Returns true if `rd` is declared in a header or source file that uses
+/// `Q_OBJECT` / Qt slots / signals.
+bool isQObjectClassRecord(const CXXRecordDecl* rd, const SourceManager& sm) {
+    if (!rd) return false;
+    SourceLocation loc = sm.getSpellingLoc(rd->getBeginLoc());
+    if (loc.isInvalid()) return false;
+    FileID fid = sm.getFileID(loc);
+    bool invalid = false;
+    llvm::StringRef buf = sm.getBufferData(fid, &invalid);
+    if (invalid) return false;
+    return buf.contains("Q_OBJECT") || buf.contains("Q_GADGET") ||
+           buf.contains("signals:") || buf.contains("slots:") ||
+           buf.contains("Q_SIGNALS") || buf.contains("Q_SLOTS");
+}
 
 /// Returns true if `vd` has an explicit value initialization that is covered by Rule 0-1-6
 /// (Unused Assignments / Initializations) for local or file-scope static variables.
@@ -147,6 +273,11 @@ public:
         if (md->getBeginLoc().isInvalid() || sm_.isInSystemHeader(md->getBeginLoc())) {
             return true;
         }
+        if (md->doesThisDeclarationHaveABody() && md->isOutOfLine()) {
+            if (const CXXRecordDecl* rd = md->getParent()) {
+                recordsWithUsedFields_.insert(rd->getCanonicalDecl());
+            }
+        }
         const FunctionDecl* prev = currentFunc_;
         currentFunc_ = md->getCanonicalDecl();
         bool res = SafeASTVisitor<UsageVisitor>::TraverseCXXMethodDecl(md);
@@ -200,6 +331,12 @@ private:
         if (rd && hasMain_) {
             return false;
         }
+        if (rd && isQObjectClassRecord(rd, sm_)) {
+            // Uncalled methods/slots of Q_OBJECT classes are flagged here and then
+            // verified across project .cpp files by ViolationStore so slot/macro
+            // member uses are recorded as auditable exclusions.
+            return false;
+        }
         if (rd) {
             for (const CXXMethodDecl* other : rd->methods()) {
                 if (!isa<CXXConstructorDecl>(other) &&
@@ -238,12 +375,21 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
     if (!tu) return;
 
     const SourceManager& sm = *result.SourceManager;
+    const LangOptions& langOpts = result.Context->getLangOpts();
 
     CallAndDeclCollector collector(sm, store_);
     collector.TraverseAST(*result.Context);
 
     UsageVisitor usage(sm, collector.calledFunctions_, collector.hasMain_);
     usage.TraverseAST(*result.Context);
+
+    for (const VarDecl* vd : collector.varDecls_) {
+        const VarDecl* canon = vd->getCanonicalDecl();
+        if (usage.referencedVars_.count(canon) == 0 &&
+            isLocalVarReadInFunctionText(vd, sm, langOpts)) {
+            usage.referencedVars_.insert(canon);
+        }
+    }
 
     for (const VarDecl* vd : collector.varDecls_) {
         const VarDecl* canon = vd->getCanonicalDecl();
@@ -259,8 +405,10 @@ void Rule013::run(const MatchFinder::MatchResult& result) {
             if (vd->isFileVarDecl() && !collector.hasMain_) {
                 continue;
             }
-            // Skip declaration-only test stubs where no variables are referenced at all.
-            if (usage.referencedVars_.empty()) {
+            // Skip declaration-only test stubs where no variables are referenced at all,
+            // unless `vd` is an `emit signalName(...)` pseudo-declaration so it is
+            // captured in the Excluded Findings audit section.
+            if (usage.referencedVars_.empty() && !isEmitSignalVarDecl(vd, sm)) {
                 continue;
             }
             report(vd->getBeginLoc(),

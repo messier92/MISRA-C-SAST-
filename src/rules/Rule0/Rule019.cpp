@@ -75,6 +75,10 @@ bool exprMayHaveSideEffects(const Expr* e, ASTContext& ctx) {
             found_ = true;
             return false;
         }
+        bool VisitRecoveryExpr(RecoveryExpr*) {
+            found_ = true;
+            return false;
+        }
         bool VisitBinaryOperator(BinaryOperator* bo) {
             if (bo->isAssignmentOp()) {
                 found_ = true;

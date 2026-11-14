@@ -143,6 +143,19 @@ public:
         return false;
     }
 
+    bool VisitRecoveryExpr(RecoveryExpr*) {
+        foundSideEffect_ = true;
+        return false;
+    }
+
+    bool VisitVarDecl(VarDecl* vd) {
+        if (vd && vd->isInvalidDecl()) {
+            foundSideEffect_ = true;
+            return false;
+        }
+        return true;
+    }
+
     bool VisitDeclRefExpr(DeclRefExpr* dre) {
         if (!dre) return true;
         if (dre->getType().isVolatileQualified()) {

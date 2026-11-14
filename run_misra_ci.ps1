@@ -278,21 +278,28 @@ if (-not (Test-Path -LiteralPath $TempReport -PathType Leaf)) {
 $ReportLines = Get-Content -LiteralPath $TempReport
 Remove-Item -LiteralPath $TempReport -Force -ErrorAction SilentlyContinue
 
-# Parse violations and rule summary from the generated report, canonicalizing
-# file paths and collapsing duplicate (file, line) entries to at most one per line:file.
+# Parse confirmed violations, excluded findings, and rule summary from the generated report,
+# canonicalizing file paths and collapsing duplicate (file, line) entries.
 $TagLine = ""
 $RegisteredRules = New-Object System.Collections.Generic.List[string]
 $KeptViolations = New-Object System.Collections.Generic.List[PSCustomObject]
+$KeptExcluded = New-Object System.Collections.Generic.List[PSCustomObject]
 $SeenFileLines = @{}
+$SeenExcludedKeys = @{}
 $RuleCounts = @{}
+$ExcludedRuleCounts = @{}
 
 $Section = "header"
 for ($i = 0; $i -lt $ReportLines.Count; $i++) {
     $line = $ReportLines[$i]
     if ($line -match '^\s*Tag:\s*(.+)$') {
         $TagLine = $line
-    } elseif ($line -match '^Violations \(\d+\):') {
+    } elseif ($line -match '^(?:Confirmed Findings — )?Violations \(\d+\):') {
         $Section = "violations"
+        $i++ # skip dashed separator
+        continue
+    } elseif ($line -match '^Excluded Findings \(\d+\):') {
+        $Section = "excluded"
         $i++ # skip dashed separator
         continue
     } elseif ($line -match '^Summary by rule:') {
@@ -327,6 +334,39 @@ for ($i = 0; $i -lt $ReportLines.Count; $i++) {
                 })
             }
         }
+    } elseif ($Section -eq "excluded") {
+        if ($line -match '^-{10,}$') {
+            $Section = "after_excluded"
+            continue
+        }
+        if ($line -match '^(.+):(\d+):(\d+)\s+\[([A-Z0-9\-]+)\]\s+(.+)$') {
+            $vFile = Resolve-CanonicalPath -FilePath $Matches[1] -RootDir $ScanDirFull
+            $vLine = $Matches[2]
+            $vCol  = $Matches[3]
+            $vRule = $Matches[4]
+            $vMsg  = $Matches[5]
+            $srcLine = ""
+            $justLine = ""
+            if (($i + 1 -lt $ReportLines.Count) -and ($ReportLines[$i + 1] -match '^\s*\|\s*(.*)$')) {
+                $srcLine = $ReportLines[$i + 1]
+                $i++
+            }
+            if (($i + 1 -lt $ReportLines.Count) -and ($ReportLines[$i + 1] -match '^\s*->\s*Exclusion Justification\s*\[([A-Z0-9\-]+)\]:\s*(.+)$')) {
+                $justLine = $ReportLines[$i + 1]
+                $i++
+            }
+            $exKey = "$($vFile.ToLowerInvariant()):${vLine}:${vRule}"
+            if (-not $SeenExcludedKeys.ContainsKey($exKey) -and
+                -not (Test-FileExcluded -FilePath $vFile -RootDir $ScanDirFull -Patterns $NormalizedExcludes)) {
+                $SeenExcludedKeys[$exKey] = $true
+                $KeptExcluded.Add([PSCustomObject]@{
+                    HeaderLine        = "${vFile}:${vLine}:${vCol}  [${vRule}]  ${vMsg}"
+                    SourceLine        = $srcLine
+                    JustificationLine = $justLine
+                    RuleId            = $vRule
+                })
+            }
+        }
     } elseif ($Section -eq "summary") {
         if ($line -match '^\s*(MISRA-[0-9\-]+)\s+\d+\s+violation') {
             $rId = $Matches[1]
@@ -342,6 +382,14 @@ foreach ($v in $KeptViolations) {
     } else {
         $RegisteredRules.Add($v.RuleId)
         $RuleCounts[$v.RuleId] = 1
+    }
+}
+
+foreach ($ev in $KeptExcluded) {
+    if ($ExcludedRuleCounts.ContainsKey($ev.RuleId)) {
+        $ExcludedRuleCounts[$ev.RuleId]++
+    } else {
+        $ExcludedRuleCounts[$ev.RuleId] = 1
     }
 }
 
@@ -361,10 +409,10 @@ foreach ($s in $IncludedSources) {
 $OutLines.Add("")
 
 if ($KeptViolations.Count -eq 0) {
-    $OutLines.Add("No violations found.")
+    $OutLines.Add("Confirmed Findings: No violations found.")
     $OutLines.Add("")
 } else {
-    $OutLines.Add("Violations ($($KeptViolations.Count)):")
+    $OutLines.Add("Confirmed Findings — Violations ($($KeptViolations.Count)):")
     $OutLines.Add(("-" * 72))
     foreach ($v in $KeptViolations) {
         $OutLines.Add($v.HeaderLine)
@@ -376,14 +424,41 @@ if ($KeptViolations.Count -eq 0) {
     $OutLines.Add("")
 }
 
+if ($KeptExcluded.Count -eq 0) {
+    $OutLines.Add("Excluded Findings (0): None.")
+    $OutLines.Add("")
+} else {
+    $OutLines.Add("Excluded Findings ($($KeptExcluded.Count)):")
+    $OutLines.Add(("-" * 72))
+    foreach ($ev in $KeptExcluded) {
+        $OutLines.Add($ev.HeaderLine)
+        if (-not [string]::IsNullOrWhiteSpace($ev.SourceLine)) {
+            $OutLines.Add($ev.SourceLine)
+        }
+        if (-not [string]::IsNullOrWhiteSpace($ev.JustificationLine)) {
+            $OutLines.Add($ev.JustificationLine)
+        }
+    }
+    $OutLines.Add(("-" * 72))
+    $OutLines.Add("")
+}
+
 $OutLines.Add("Summary by rule:")
 foreach ($rId in $RegisteredRules) {
     $cnt = $RuleCounts[$rId]
+    $exCnt = if ($ExcludedRuleCounts.ContainsKey($rId)) { $ExcludedRuleCounts[$rId] } else { 0 }
     $plural = if ($cnt -eq 1) { "" } else { "s" }
-    $OutLines.Add(("  {0,-20}{1} violation{2}" -f $rId, $cnt, $plural))
+    $lineStr = ("  {0,-20}{1} violation{2}" -f $rId, $cnt, $plural)
+    if ($exCnt -gt 0) {
+        $lineStr += " ($exCnt excluded)"
+    }
+    $OutLines.Add($lineStr)
 }
 $totalPlural = if ($KeptViolations.Count -eq 1) { "" } else { "s" }
+$exPlural = if ($KeptExcluded.Count -eq 1) { "" } else { "s" }
 $OutLines.Add("")
+$OutLines.Add("  Confirmed Total: $($KeptViolations.Count) violation$totalPlural")
+$OutLines.Add("  Excluded Total:  $($KeptExcluded.Count) excluded finding$exPlural")
 $OutLines.Add("  Total: $($KeptViolations.Count) violation$totalPlural")
 $OutLines.Add("================================================================")
 

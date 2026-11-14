@@ -112,6 +112,20 @@ public:
 
     bool TraverseCXXRecordDecl(CXXRecordDecl*) { return true; }
 
+    bool VisitRecoveryExpr(const RecoveryExpr*) {
+        accessesNonStaticData = true;
+        modifiesNonStaticData = true;
+        return true;
+    }
+
+    bool VisitVarDecl(const VarDecl* vd) {
+        if (vd && vd->isInvalidDecl()) {
+            accessesNonStaticData = true;
+            modifiesNonStaticData = true;
+        }
+        return true;
+    }
+
     bool VisitMemberExpr(const MemberExpr* me) {
         if (isThisFieldAccess(me)) {
             accessesNonStaticData = true;
@@ -232,7 +246,10 @@ void Rule933::run(const MatchFinder::MatchResult& result) {
     const auto* method = result.Nodes.getNodeAs<CXXMethodDecl>("method");
     if (!method || !result.Context || !result.SourceManager) return;
 
-    if (method->isImplicit() || method->isDefaulted() || method->isDeleted()) return;
+    if (method->isImplicit() || method->isDefaulted() || method->isDeleted() ||
+        method->isInvalidDecl()) {
+        return;
+    }
     if (!method->hasBody()) return;
 
     // Exclude special member functions, conversion operators, overloaded operators,

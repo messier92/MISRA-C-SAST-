@@ -1,6 +1,7 @@
 #include "ViolationStore.h"
 
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -330,6 +331,148 @@ void testIncrementalSnapshotAndFailureReporting() {
     std::remove(snapshotPath.c_str());
 }
 
+/// 9. Test Qt false-positive exclusions (emit signalName under 0-1-6 / 0-1-3,
+///    Q_OBJECT member variables verified in .cpp files under 0-1-3, and '!' on
+///    non-bool Qt expressions under 5-3-1), preservation of real findings
+///    (7-1-1, 6-6-5, 7-3-1, 2-10-1, 0-1-7), and two-section auditable report.
+void testQtFalsePositiveExclusionsAndAuditableReport() {
+    namespace fs = std::filesystem;
+    fs::path tempDir = fs::temp_directory_path() / "misra_qt_fp_unit_test";
+    std::error_code ec;
+    fs::remove_all(tempDir, ec);
+    fs::create_directories(tempDir, ec);
+
+    fs::path headerPath = tempDir / "Controller.h";
+    fs::path cppPath    = tempDir / "Controller.cpp";
+    fs::path reportPath = tempDir / "qt_audit_report.txt";
+
+    {
+        std::ofstream hOut(headerPath);
+        hOut << "#pragma once\n"
+             << "class QObject {};\n"
+             << "class QString { public: bool isEmpty() const; };\n"
+             << "class Controller : public QObject {\n"
+             << "    Q_OBJECT\n"
+             << "signals:\n"
+             << "    void statusChanged(const QString& s);\n"
+             << "    void countUpdated(int c);\n"
+             << "public slots:\n"
+             << "    void onAction(const QString& text);\n"
+             << "private:\n"
+             << "    int m_usedInSlot;\n"
+             << "    int m_trulyUnused;\n"
+             << "};\n";
+    }
+    {
+        std::ofstream cppOut(cppPath);
+        cppOut << "#include \"Controller.h\"\n"
+               << "int globalCounter = 0;\n"
+               << "bool saveState(const QString& p);\n"
+               << "Controller::Controller() : m_usedInSlot(0), m_trulyUnused(0) {}\n"
+               << "void Controller::onAction(const QString& text) {\n"
+               << "    m_usedInSlot++;\n"
+               << "    if (!text.isEmpty()) {\n"
+               << "        emit statusChanged(text);\n"
+               << "        return;\n"
+               << "    }\n"
+               << "    int step = m_usedInSlot;\n"
+               << "    emit countUpdated(step);\n"
+               << "    saveState(text);\n"
+               << "    return;\n"
+               << "}\n";
+    }
+
+    ViolationStore store(tempDir.string());
+    store.setScannedFiles({cppPath.string()});
+    store.registerRule("MISRA-0-1-3");
+    store.registerRule("MISRA-0-1-6");
+    store.registerRule("MISRA-0-1-7");
+    store.registerRule("MISRA-2-10-1");
+    store.registerRule("MISRA-5-3-1");
+    store.registerRule("MISRA-6-6-5");
+    store.registerRule("MISRA-7-1-1");
+    store.registerRule("MISRA-7-3-1");
+
+    // 1. False positives to be excluded:
+    // (a) Qt signal emission under MISRA-0-1-3 and MISRA-0-1-6:
+    store.addViolation(makeViolation(
+        cppPath.string(), 8, 14, "MISRA-0-1-3",
+        "Variable 'statusChanged' is declared or defined but never used.",
+        "emit statusChanged(text);"));
+    store.addViolation(makeViolation(
+        cppPath.string(), 12, 10, "MISRA-0-1-6",
+        "Variable 'countUpdated' is initialized with a value that is never subsequently used.",
+        "emit countUpdated(step);"));
+
+    // (b) Q_OBJECT member variable used inside slot in Controller.cpp (MISRA-0-1-3):
+    store.addViolation(makeViolation(
+        headerPath.string(), 12, 9, "MISRA-0-1-3",
+        "Member variable 'm_usedInSlot' is declared but never read or written.",
+        "int m_usedInSlot;"));
+
+    // (c) '!' on non-bool Qt expression (MISRA-5-3-1) on the SAME line as a real 7-1-1 finding:
+    store.addViolation(makeViolation(
+        cppPath.string(), 7, 9, "MISRA-5-3-1",
+        "Operand of logical '!' operator does not have type bool [MISRA-5-3-1]",
+        "if (!text.isEmpty()) {"));
+    store.addViolation(makeViolation(
+        cppPath.string(), 7, 5, "MISRA-7-1-1",
+        "Variable 'localFlag' is not modified and shall be const qualified [MISRA-7-1-1]",
+        "if (!text.isEmpty()) {"));
+
+    // 2. Real findings that MUST still be reported:
+    // - Genuinely unused Q_OBJECT member variable (only in ctor init list, never read/written in .cpp):
+    store.addViolation(makeViolation(
+        headerPath.string(), 13, 9, "MISRA-0-1-3",
+        "Member variable 'm_trulyUnused' is declared but never read or written.",
+        "int m_trulyUnused;"));
+    // - MISRA-7-3-1, MISRA-6-6-5, MISRA-2-10-1, MISRA-0-1-7:
+    store.addViolation(makeViolation(
+        cppPath.string(), 2, 5, "MISRA-7-3-1",
+        "Variable 'globalCounter' is declared in the global namespace [MISRA-7-3-1]",
+        "int globalCounter = 0;"));
+    store.addViolation(makeViolation(
+        cppPath.string(), 9, 9, "MISRA-6-6-5",
+        "Function 'onAction' has multiple return statements [MISRA-6-6-5]",
+        "return;"));
+    store.addViolation(makeViolation(
+        cppPath.string(), 11, 9, "MISRA-2-10-1",
+        "Identifier 'dataO1' is typographically ambiguous with 'data0l' [MISRA-2-10-1]",
+        "int dataO1 = 1;"));
+    store.addViolation(makeViolation(
+        cppPath.string(), 13, 5, "MISRA-0-1-7",
+        "Return value of non-void function call is ignored.",
+        "saveState(text);"));
+
+    size_t confirmedCount = store.finalize(reportPath.string());
+    // 6 confirmed findings: m_trulyUnused (0-1-3), globalCounter (7-3-1),
+    // localFlag (7-1-1 on line 7 after 5-3-1 was excluded!), onAction (6-6-5),
+    // dataO1 (2-10-1), saveState (0-1-7).
+    REQUIRE(confirmedCount == 6);
+    REQUIRE(store.getExcludedViolations().size() == 4);
+
+    std::ifstream ifs(reportPath);
+    REQUIRE(ifs.is_open());
+    std::ostringstream ss;
+    ss << ifs.rdbuf();
+    std::string reportText = ss.str();
+    ifs.close();
+
+    // Verify two-section report structure and auditable justifications with rule numbers:
+    REQUIRE(reportText.find("Confirmed Findings — Violations (6):") != std::string::npos);
+    REQUIRE(reportText.find("Excluded Findings (4):") != std::string::npos);
+    REQUIRE(reportText.find("Exclusion Justification [MISRA-0-1-3]:") != std::string::npos);
+    REQUIRE(reportText.find("Exclusion Justification [MISRA-0-1-6]:") != std::string::npos);
+    REQUIRE(reportText.find("Exclusion Justification [MISRA-5-3-1]:") != std::string::npos);
+    REQUIRE(reportText.find("[MISRA-7-1-1]") != std::string::npos);
+    REQUIRE(reportText.find("[MISRA-6-6-5]") != std::string::npos);
+    REQUIRE(reportText.find("[MISRA-7-3-1]") != std::string::npos);
+    REQUIRE(reportText.find("[MISRA-2-10-1]") != std::string::npos);
+    REQUIRE(reportText.find("[MISRA-0-1-7]") != std::string::npos);
+
+    fs::remove_all(tempDir, ec);
+}
+
 } // namespace
 
 int main() {
@@ -341,6 +484,7 @@ int main() {
     testDuplicatePathSpellingsAndHeaderCanonicalisation();
     testSourceLocationAndExternalDirectoryFiltering();
     testIncrementalSnapshotAndFailureReporting();
+    testQtFalsePositiveExclusionsAndAuditableReport();
 
     std::cout << "All ViolationStore precedence tests passed successfully.\n";
     return 0;

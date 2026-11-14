@@ -6,7 +6,9 @@
 #include "clang/AST/ExprCXX.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Analysis/CFG.h"
+#include "clang/Lex/Lexer.h"
 
+#include <cctype>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -18,6 +20,108 @@ using namespace clang::ast_matchers;
 namespace misra {
 
 namespace {
+
+bool isIdentChar016(char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+}
+
+bool isEmitSignalVarDecl(const VarDecl* vd, const SourceManager& sm) {
+    if (!vd || vd->getName().empty()) return false;
+    SourceLocation spellingLoc = sm.getSpellingLoc(vd->getLocation());
+    if (spellingLoc.isInvalid()) return false;
+
+    FileID fid = sm.getFileID(spellingLoc);
+    unsigned lineNo = sm.getSpellingLineNumber(spellingLoc);
+    SourceLocation lineStart = sm.translateLineCol(fid, lineNo, 1);
+    if (lineStart.isInvalid()) return false;
+
+    bool invalid = false;
+    const char* buf = sm.getCharacterData(lineStart, &invalid);
+    if (invalid || !buf) return false;
+
+    const char* p = buf;
+    while (*p && *p != '\n' && *p != '\r') ++p;
+    std::string lineText(buf, p);
+
+    size_t n = lineText.size();
+    for (size_t i = 0; i < n;) {
+        if (isIdentChar016(lineText[i]) && !std::isdigit(static_cast<unsigned char>(lineText[i]))) {
+            size_t start = i;
+            while (i < n && isIdentChar016(lineText[i])) ++i;
+            llvm::StringRef kw(lineText.data() + start, i - start);
+            if (kw == "emit" || kw == "Q_EMIT") {
+                size_t j = i;
+                while (j < n && std::isspace(static_cast<unsigned char>(lineText[j]))) ++j;
+                if (j == i) continue;
+                while (j < n && isIdentChar016(lineText[j])) {
+                    size_t idStart = j;
+                    while (j < n && isIdentChar016(lineText[j])) ++j;
+                    llvm::StringRef ident(lineText.data() + idStart, j - idStart);
+                    size_t k = j;
+                    while (k < n && std::isspace(static_cast<unsigned char>(lineText[k]))) ++k;
+                    if (k < n && lineText[k] == '(') {
+                        return ident == vd->getName();
+                    }
+                    break;
+                }
+            }
+        } else {
+            ++i;
+        }
+    }
+    return false;
+}
+
+bool isLocalVarReadInFunctionText(const VarDecl* vd,
+                                  const SourceManager& sm,
+                                  const LangOptions& langOpts) {
+    if (!vd || !vd->hasLocalStorage() || vd->getName().empty()) return false;
+    if (isEmitSignalVarDecl(vd, sm)) return false;
+
+    const auto* fd = dyn_cast_or_null<FunctionDecl>(vd->getDeclContext());
+    if (!fd || !fd->hasBody()) return false;
+
+    Stmt* body = fd->getBody();
+    SourceLocation declLoc = sm.getSpellingLoc(vd->getLocation());
+    SourceLocation bodyEnd = sm.getSpellingLoc(body->getEndLoc());
+    if (declLoc.isInvalid() || bodyEnd.isInvalid()) return false;
+
+    FileID fid = sm.getFileID(declLoc);
+    if (fid != sm.getFileID(bodyEnd)) return false;
+
+    unsigned declLine = sm.getSpellingLineNumber(declLoc);
+    SourceLocation scanStart = sm.translateLineCol(fid, declLine + 1, 1);
+    if (scanStart.isInvalid() || !sm.isBeforeInTranslationUnit(scanStart, bodyEnd)) {
+        return false;
+    }
+
+    bool invalid = false;
+    llvm::StringRef buffer = sm.getBufferData(fid, &invalid);
+    if (invalid) return false;
+
+    const char* startPtr = sm.getCharacterData(scanStart, &invalid);
+    if (invalid || !startPtr) return false;
+    const char* endPtr = sm.getCharacterData(bodyEnd, &invalid);
+    if (invalid || !endPtr || startPtr >= endPtr) return false;
+
+    Lexer lexer(scanStart, langOpts, buffer.begin(), startPtr, endPtr);
+    lexer.SetCommentRetentionState(false);
+
+    llvm::StringRef targetName = vd->getName();
+    Token tok;
+    while (!lexer.LexFromRawLexer(tok)) {
+        if (tok.is(tok::raw_identifier) && tok.getRawIdentifier() == targetName) {
+            Token nextTok;
+            if (!lexer.LexFromRawLexer(nextTok)) {
+                if (nextTok.is(tok::equal)) {
+                    continue;
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
 
 bool isTargetLocalVar(const VarDecl* vd) {
     if (!vd) return false;
@@ -280,9 +384,13 @@ void Rule016::run(const MatchFinder::MatchResult& result) {
 
         for (const VarDecl* vd : localFinder.localVars_) {
             const VarDecl* canon = vd->getCanonicalDecl();
+            if (funcAccess.readVars_.count(canon) == 0 &&
+                isLocalVarReadInFunctionText(vd, sm, ctx.getLangOpts())) {
+                funcAccess.readVars_.insert(canon);
+            }
             // Exception in specification: "The only exception is the case where
             // a value is assigned at variable initialization and later overwritten."
-            if (hasExplicitValueInit(vd) &&
+            if ((hasExplicitValueInit(vd) || isEmitSignalVarDecl(vd, sm)) &&
                 funcAccess.readVars_.count(canon) == 0 &&
                 funcAccess.writtenVars_.count(canon) == 0) {
                 report(vd->getBeginLoc(),

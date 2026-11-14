@@ -128,6 +128,34 @@ void Rule::report(clang::SourceLocation loc, const std::string& message) {
     store_->addViolation(v);
 }
 
+void Rule::reportExcluded(clang::SourceLocation loc,
+                          const std::string& message,
+                          const std::string& justification) {
+    if (!store_ || !ctx_) return;
+
+    const auto& sm = ctx_->getSourceManager();
+    if (!isProjectLocation(loc, sm, store_)) return;
+
+    clang::SourceLocation spellingLoc = sm.getSpellingLoc(loc);
+    if (spellingLoc.isInvalid()) return;
+
+    clang::PresumedLoc presumed = sm.getPresumedLoc(spellingLoc);
+    if (presumed.isInvalid()) return;
+
+    std::string canonFile = getCanonicalFilePath(spellingLoc, sm);
+    if (canonFile.empty()) return;
+
+    Violation v;
+    v.file       = std::move(canonFile);
+    v.line       = presumed.getLine();
+    v.col        = presumed.getColumn();
+    v.ruleId     = ruleId_;
+    v.message    = message;
+    v.sourceLine = getSourceLine(spellingLoc);
+
+    store_->addExcludedViolation(v, justification);
+}
+
 std::string Rule::getSourceLine(clang::SourceLocation loc) const {
     if (!ctx_) return "";
     const auto& sm = ctx_->getSourceManager();

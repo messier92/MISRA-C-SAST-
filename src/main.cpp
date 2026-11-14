@@ -305,6 +305,13 @@ static FileAnalysisResult analyzeSingleFileIsolated(
         tool->appendArgumentsAdjuster(
             clang::tooling::getInsertArgumentAdjuster(
                 {"-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH",
+                 "-DQ_OBJECT=",
+                 "-DQ_GADGET=",
+                 "-DQ_INVOKABLE=",
+                 "-Dsignals=public",
+                 "-DQ_SIGNALS=public",
+                 "-Dslots=",
+                 "-DQ_SLOTS=",
                  "-fno-access-control",
                  "-ffreestanding",
                  "-w"},

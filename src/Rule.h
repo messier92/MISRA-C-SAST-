@@ -104,6 +104,12 @@ protected:
     /// Extracts file/line/col and the source line from `loc`.
     void report(clang::SourceLocation loc, const std::string& message);
 
+    /// Record an excluded false-positive finding at the given source location
+    /// with an auditable rule number and justification.
+    void reportExcluded(clang::SourceLocation loc,
+                        const std::string& message,
+                        const std::string& justification);
+
     /// Returns true if the given statement is reachable
     /// (i.e. not after a return/break/throw in its parent compound).
     static bool isReachable(const clang::Stmt* stmt,

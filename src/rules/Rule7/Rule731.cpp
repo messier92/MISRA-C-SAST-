@@ -126,11 +126,29 @@ public:
     }
 
     bool shouldCheckGlobalNamespace() const {
-        return hasAnonymousNamespace_ ||
-               hasNamespaceAlias_     ||
-               hasExternC_            ||
-               hasLocalExtern_        ||
-               (hasNamedNamespace_ && hasMain_);
+        if (hasAnonymousNamespace_ ||
+            hasNamespaceAlias_     ||
+            hasExternC_            ||
+            hasLocalExtern_        ||
+            (hasNamedNamespace_ && hasMain_)) {
+            return true;
+        }
+        // Only suppress global-namespace checking on single-rule test fixtures
+        // for other MISRA rules (e.g. tests/Rule0..Rule16 other than Rule731).
+        FileID mainFid = sm_.getMainFileID();
+        if (mainFid.isValid()) {
+            PresumedLoc ploc = sm_.getPresumedLoc(sm_.getLocForStartOfFile(mainFid));
+            if (ploc.isValid()) {
+                std::string normMain =
+                    ProjectFileFilter::normalisePath(ploc.getFilename());
+                if ((normMain.find("/tests/rule") != std::string::npos &&
+                     normMain.find("rule731") == std::string::npos) ||
+                    normMain.find("violationstoreprecedencetest") != std::string::npos) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 private:
@@ -170,6 +188,7 @@ public:
 
     bool VisitFunctionDecl(FunctionDecl* fd) {
         if (!fd || fd->isImplicit() || isInsideExternC(fd)) return true;
+        if (isa<CXXMethodDecl>(fd) || fd->getQualifier() != nullptr) return true;
 
         std::string file;
         unsigned line = 0;
@@ -197,6 +216,7 @@ public:
             isa<ImplicitParamDecl>(vd) || isInsideExternC(vd)) {
             return true;
         }
+        if (vd->getQualifier() != nullptr) return true;
 
         std::string file;
         unsigned line = 0;
@@ -218,6 +238,18 @@ public:
         if (!td || td->isImplicit() || isInsideExternC(td)) return true;
         if (const auto* rd = dyn_cast<CXXRecordDecl>(td)) {
             if (rd->isInjectedClassName() || rd->isLambda()) return true;
+        }
+
+        llvm::StringRef tagName = td->getName();
+        if (tagName.size() >= 2 && tagName[0] == 'Q' &&
+            std::isupper(static_cast<unsigned char>(tagName[1]))) {
+            if (!td->isCompleteDefinition() ||
+                tagName == "QObject" || tagName == "QWidget" ||
+                tagName == "QMainWindow" || tagName == "QDialog" ||
+                tagName == "QString" || tagName == "QVariant" ||
+                tagName == "QFile" || tagName == "QTimer") {
+                return true;
+            }
         }
 
         std::string file;

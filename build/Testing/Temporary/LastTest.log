@@ -1,10 +1,10 @@
-Start testing: Oct 31 09:30 Malay Peninsula Standard Time
+Start testing: Nov 14 00:38 Malay Peninsula Standard Time
 ----------------------------------------------------------
 1/1 Testing: ViolationStorePrecedenceTest
 1/1 Test: ViolationStorePrecedenceTest
 Command: "C:/Users/HanLo/Projects/misra/build/Release/Release/violation_store_test.exe"
 Directory: C:/Users/HanLo/Projects/misra/build
-"ViolationStorePrecedenceTest" start time: Oct 31 09:30 Malay Peninsula Standard Time
+"ViolationStorePrecedenceTest" start time: Nov 14 00:38 Malay Peninsula Standard Time
 Output:
 ----------------------------------------------------------
 ================================================================
@@ -15,27 +15,90 @@ Output:
 Scanned files (1):
   sample.cpp
 
-Violations (1):
+Confirmed Findings — Violations (1):
 ------------------------------------------------------------------------
 sample.cpp:52:15  [MISRA-5-2-4]  C-style cast
     | Base* obj2 = (Base*)(&obj);
+------------------------------------------------------------------------
+
+Excluded Findings (0):
+------------------------------------------------------------------------
+  None.
 ------------------------------------------------------------------------
 
 Summary by rule:
   MISRA-0-1-6         0 violations
   MISRA-5-2-4         1 violation
 
-  Total: 1 violation
+  Total: 1 violation (0 excluded findings)
 ================================================================
 
 Report written to: temp_precedence_test_report.txt
+================================================================
+  MISRA C++:2008 Static Analysis Report
+================================================================
+
+Scanned files (1):
+  C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp
+
+Confirmed Findings — Violations (6):
+------------------------------------------------------------------------
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:2:5  [MISRA-7-3-1]  Variable 'globalCounter' is declared in the global namespace [MISRA-7-3-1]
+    | int globalCounter = 0;
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:7:5  [MISRA-7-1-1]  Variable 'localFlag' is not modified and shall be const qualified [MISRA-7-1-1]
+    | if (!text.isEmpty()) {
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:9:9  [MISRA-6-6-5]  Function 'onAction' has multiple return statements [MISRA-6-6-5]
+    | return;
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:11:9  [MISRA-2-10-1]  Identifier 'dataO1' is typographically ambiguous with 'data0l' [MISRA-2-10-1]
+    | int dataO1 = 1;
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:13:5  [MISRA-0-1-7]  Return value of non-void function call is ignored.
+    | saveState(text);
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.h:13:9  [MISRA-0-1-3]  Member variable 'm_trulyUnused' is declared but never read or written.
+    | int m_trulyUnused;
+------------------------------------------------------------------------
+
+Excluded Findings (4):
+------------------------------------------------------------------------
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:7:9  [MISRA-5-3-1]  Operand of logical '!' operator does not have type bool [MISRA-5-3-1]
+    | if (!text.isEmpty()) {
+    -> Exclusion Justification [MISRA-5-3-1]: Excluded under MISRA-5-3-1: Operand of logical '!' on Qt idiom (isEmpty(...)) is guaranteed by the Qt API to convert to bool.
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:8:14  [MISRA-0-1-3]  Variable 'statusChanged' is declared or defined but never used.
+    | emit statusChanged(text);
+    -> Exclusion Justification [MISRA-0-1-3]: Excluded under MISRA-0-1-3: Qt signal emission — 'emit statusChanged(...)' is a Qt macro that triggers a signal, not a variable use.
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.cpp:12:10  [MISRA-0-1-6]  Variable 'countUpdated' is initialized with a value that is never subsequently used.
+    | emit countUpdated(step);
+    -> Exclusion Justification [MISRA-0-1-6]: Excluded under MISRA-0-1-6: Qt signal emission — 'emit countUpdated(...)' is a Qt macro that triggers a signal, not a variable use.
+C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\Controller.h:12:9  [MISRA-0-1-3]  Member variable 'm_usedInSlot' is declared but never read or written.
+    | int m_usedInSlot;
+    -> Exclusion Justification [MISRA-0-1-3]: Excluded under MISRA-0-1-3: Member variable 'm_usedInSlot' of Q_OBJECT derived class was verified to be used in Controller.cpp:6 (inside a slot, method, or QObject macro).
+------------------------------------------------------------------------
+
+Summary by rule:
+  MISRA-0-1-3         1 violation
+  MISRA-0-1-6         0 violations
+  MISRA-0-1-7         1 violation
+  MISRA-2-10-1        1 violation
+  MISRA-5-3-1         0 violations
+  MISRA-6-6-5         1 violation
+  MISRA-7-1-1         1 violation
+  MISRA-7-3-1         1 violation
+
+Excluded summary by rule:
+  MISRA-0-1-3         2 excluded findings
+  MISRA-0-1-6         1 excluded finding
+  MISRA-5-3-1         1 excluded finding
+
+  Total: 6 violations (4 excluded findings)
+================================================================
+
+Report written to: C:\Users\HanLo\AppData\Local\Temp\misra_qt_fp_unit_test\qt_audit_report.txt
 All ViolationStore precedence tests passed successfully.
 <end of output>
 Test time =   0.05 sec
 ----------------------------------------------------------
 Test Passed.
-"ViolationStorePrecedenceTest" end time: Oct 31 09:30 Malay Peninsula Standard Time
+"ViolationStorePrecedenceTest" end time: Nov 14 00:38 Malay Peninsula Standard Time
 "ViolationStorePrecedenceTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Oct 31 09:30 Malay Peninsula Standard Time
+End testing: Nov 14 00:38 Malay Peninsula Standard Time

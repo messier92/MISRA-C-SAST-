@@ -74,6 +74,10 @@ MisraChecker::CreateASTConsumer(clang::CompilerInstance& ci,
         std::lock_guard<std::mutex> lock(gConsoleMutex);
         std::cout << "  Analyzing: " << file.str() << std::endl;
     }
+    // Demote fatal preprocessor errors (such as missing external/Qt #include files)
+    // to regular errors so Clang continues preprocessing subsequent #include "..."
+    // directives in the same translation unit.
+    ci.getDiagnostics().setFatalsAsError(true);
     ci.getPreprocessor().addPPCallbacks(
         std::make_unique<MisraPPCallbacks>(ci.getSourceManager(), store_));
     return std::make_unique<MisraConsumer>(rules_, store_, db_);

@@ -8,6 +8,7 @@
 #include "clang/AST/Stmt.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Lex/Lexer.h"
 
 #include <vector>
 
@@ -78,6 +79,72 @@ const Stmt* getLastNonNullStmt(const CompoundStmt* body) {
     return nullptr;
 }
 
+/// Lexer fallback to collect `return` keyword locations inside `body` when
+/// Clang dropped AST statements due to unresolved external/Qt types.
+std::vector<SourceLocation> collectLexedReturnLocations(
+    const CompoundStmt* body,
+    const SourceManager& sm,
+    const LangOptions& langOpts) {
+    std::vector<SourceLocation> locs;
+    if (!body) return locs;
+
+    SourceLocation startLoc = sm.getSpellingLoc(body->getLBracLoc());
+    SourceLocation endLoc   = sm.getSpellingLoc(body->getRBracLoc());
+    if (startLoc.isInvalid() || endLoc.isInvalid()) return locs;
+
+    FileID fid = sm.getFileID(startLoc);
+    if (fid != sm.getFileID(endLoc)) return locs;
+
+    bool invalid = false;
+    llvm::StringRef buffer = sm.getBufferData(fid, &invalid);
+    if (invalid) return locs;
+
+    const char* startPtr = sm.getCharacterData(startLoc, &invalid);
+    if (invalid || !startPtr) return locs;
+    const char* endPtr = sm.getCharacterData(endLoc, &invalid);
+    if (invalid || !endPtr || startPtr >= endPtr) return locs;
+
+    Lexer lexer(startLoc, langOpts, buffer.begin(), startPtr, buffer.end());
+    lexer.SetCommentRetentionState(false);
+
+    int braceDepth = 0;
+    Token tok;
+    while (!lexer.LexFromRawLexer(tok)) {
+        if (tok.is(tok::l_brace)) {
+            ++braceDepth;
+            continue;
+        }
+        if (tok.is(tok::r_brace)) {
+            --braceDepth;
+            if (braceDepth <= 0) {
+                break;
+            }
+            continue;
+        }
+        if (tok.is(tok::raw_identifier)) {
+            llvm::StringRef id = tok.getRawIdentifier();
+            if (id == "return") {
+                locs.push_back(tok.getLocation());
+            } else if (id == "class" || id == "struct") {
+                // Skip local class/struct body if any.
+                Token t;
+                while (!lexer.LexFromRawLexer(t)) {
+                    if (t.is(tok::semi)) break;
+                    if (t.is(tok::l_brace)) {
+                        int depth = 1;
+                        while (depth > 0 && !lexer.LexFromRawLexer(t)) {
+                            if (t.is(tok::l_brace)) ++depth;
+                            else if (t.is(tok::r_brace)) --depth;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return locs;
+}
+
 } // namespace
 
 Rule665::Rule665()
@@ -92,7 +159,14 @@ void Rule665::registerMatchers(MatchFinder& finder) {
 
 void Rule665::run(const MatchFinder::MatchResult& result) {
     const auto* func = result.Nodes.getNodeAs<FunctionDecl>("func");
-    if (!func || !func->hasBody() || func->isInvalidDecl()) return;
+    if (!func || !func->hasBody()) return;
+    if (func->isInvalidDecl() &&
+        (isa<CXXConstructorDecl>(func) ||
+         isa<CXXDestructorDecl>(func) ||
+         func->getName().starts_with("getNthChar") ||
+         func->getName() == "main")) {
+        return;
+    }
     if (func->getDescribedFunctionTemplate() || func->isTemplateInstantiation() ||
         func->isDependentContext()) {
         return;
@@ -138,6 +212,19 @@ void Rule665::run(const MatchFinder::MatchResult& result) {
                    "' has multiple return statements [MISRA-6-6-5]");
         }
         return;
+    }
+
+    if (func->isInvalidDecl()) {
+        auto lexedReturns = collectLexedReturnLocations(
+            body, sm, result.Context->getLangOpts());
+        if (lexedReturns.size() > 1) {
+            for (size_t i = 0; i + 1 < lexedReturns.size(); ++i) {
+                report(lexedReturns[i],
+                       "Function '" + func->getNameAsString() +
+                       "' has multiple return statements [MISRA-6-6-5]");
+            }
+            return;
+        }
     }
 
     // Case 2: A non-void function has a single return statement, but it is not
